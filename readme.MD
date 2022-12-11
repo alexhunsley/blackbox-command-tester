@@ -102,3 +102,7 @@ To do this, place the expected output in a text file `stdout.txt`. Here's a layo
 
 Should the `stdout.txt` contents not match what the command actually output, a file is saved that shows the actual output: `stdout_working.txt`. You shoould diff this against your `stdout.txt` file to see any differences.
 
+# Checking in empty input/output directories using Git
+
+You might want to use an empty `input` or `output` folder for a test. This is fine as far as Blackbox Tester is concerned, but if you're using git for source control, you might have a problem because it doesn't 'see' empty folders. To get around this, put an empty file `.blackbox_ignore_this_file` inside any empty folder. It's a file name that Blackbox Tester ignores, but it will allow git to see the folder.
+
