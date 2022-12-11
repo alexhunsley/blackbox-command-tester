@@ -2,7 +2,7 @@
 
 This is a proof-of-concept.
 
-It's a tool for verifying input files versus output files for a command line tools.
+It's a tool for verifying input files versus output files for a command line tool. Typically you'd use it to test a command line tool you'd written, to ensure that its functionality has not changed.
 
 As a very simple example, image you want to verify that the `cat` command is able to write to a file (and also that it will not change a file with a different name that already exists). The directory `examples_tests/0_cat_command_creates_a_file` demonstrates the setup to do this:
 
@@ -47,4 +47,40 @@ For example, to run the `example_tests` suite, you run the command:
 ```
     python3 blackbox_tester.py example_tests
 ```
+
+The output summarises the success or failure of every test in the suite:
+
+```
+    Cleaning artifacts from test suite dir: example_tests
+    
+    Running test suite in dir: example_tests
+    
+    
+    Test 0 SUCCESS:  "test if cat command creates a file, leaving an existing file alone" in dir "example_tests/0_cat_command_creates_a_file"
+    
+    
+    Test 1 SUCCESS:  "test if echo emits to standard out" in dir "example_tests/1_cat_output_to_stdout"
+    
+    
+    Test 2 FAILED:  "test if cat command creates a file, leaving an existing file alone, deliberate diffs" in dir "example_tests/2_a_faulty_test_that_demonstrates_failure"
+       Between working and output, found orphan files/folders: ['orphan_in_input.txt']
+    
+    
+    1 failures in 3 tests.
+    
+    Done.
+```
+
+Test 2 has deliberately been set up to demonstrate failure. When a test fails because the `input` folder contents don't match the `output` folder contents, Blackbox Tester leaves a directory named `working` behind to help you debug the issue. To see the problem, run your favourite diff tool on these two directories inside `example_tests/2_a_faulty_test_that_demonstrates_failure`: 
+
+```
+   output/
+   working/
+```
+
+Any diff you see is the cause of the failure. In this case, it's the presence of a file `orphan_in_input.txt` in the `input` folder that isn't present in the `output` folder.
+
+Once you've corrected your tests (or fixed a bug in your tool!), and want to try the tests again, you might think to remove the `working` folder(s). No need to do this manually: at the start of a test suite run, Blackbox Tester automatically removes any `working` folders. If you want to clean them up without running the test suite again, run `python3 blackbox_tester.py --clean`.
+
+
 
