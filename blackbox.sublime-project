@@ -1,0 +1,13 @@
+{
+	"folders":
+	[
+		{
+			"path": "."
+		}
+	],
+	"build_systems":
+  	[{
+	    "name": "Python - Black box command tester",
+	    "cmd": ["/Users/alexhunsley/.asdf/shims/python", "-u", "$file", "example_tests"]
+	}]
+}
