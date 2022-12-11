@@ -138,7 +138,7 @@ def run_command_and_compare(vars, root_dir, target_folder, test_index, expected_
 		# back to target_folder (root of this single test)
 		os.chdir("..")
 
-		compare_folders(WORKING_DIR, EXPECTED_OUTPUT_DIR, differences, exit_on_first_difference = False, section_size = 1024 * 64)
+		compare_folders(WORKING_DIR, EXPECTED_OUTPUT_DIR, differences, exit_on_first_difference = False, section_size = 1024 * 64, ignore_files = ['.DS_Store', '.blackbox_ignore_this_file'])
 
 	# print(f"differences: {differences}")
 

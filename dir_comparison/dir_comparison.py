@@ -267,18 +267,16 @@ Between 0/dir1/dir1.1 and 1/dir1/dir1.1, found orphan files/folders: ['file_orph
 
 
 # returns a set
-def filter_files(files):
-    
-    ignore_files = ['.DS_Store']
+def filter_files(files, ignore_files):
     
     return set([x for x in files if not x in ignore_files])
 
 
 # TODO use walkdir instead of listdir (which requires us to isdir())
-def compare_folders(folder1, folder2, differences, exit_on_first_difference = False, section_size = SECTION_SIZE_DEFAULT):
+def compare_folders(folder1, folder2, differences, exit_on_first_difference = False, section_size = SECTION_SIZE_DEFAULT, ignore_files = []):
 
-    files1 = filter_files(os.listdir(folder1))
-    files2 = filter_files(os.listdir(folder2))
+    files1 = filter_files(os.listdir(folder1), ignore_files)
+    files2 = filter_files(os.listdir(folder2), ignore_files)
 
     # files1 = filter_files(files1)
     # files2 = filter_files(files2)
