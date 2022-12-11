@@ -1,2 +1,2 @@
 test_description: 'test if cat command creates a file, leaving an existing file alone'
-command: 'echo This is some text. | cat > file.txt'
+command: 'echo This is some text. | cat > file_created_by_cat.txt'
