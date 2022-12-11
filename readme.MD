@@ -80,7 +80,25 @@ Test 2 has deliberately been set up to demonstrate failure. When a test fails be
 
 Any diff you see is the cause of the failure. In this case, it's the presence of a file `orphan_in_input.txt` in the `input` folder that isn't present in the `output` folder.
 
-Once you've corrected your tests (or fixed a bug in your tool!), and want to try the tests again, you might think to remove the `working` folder(s). No need to do this manually: at the start of a test suite run, Blackbox Tester automatically removes any `working` folders. If you want to clean them up without running the test suite again, run `python3 blackbox_tester.py --clean`.
+Once you've corrected your tests (or fixed a bug in your tool!), and want to try the tests again, you might think to remove the `working` folder(s). But there's no need to do this yourself: at the start of a test suite run, Blackbox Tester automatically removes any `working` folders. If you want to clean these folders up without running the test suite again, run `python3 blackbox_tester.py --clean`.
+
+# Testing stdout output for a command
+
+Blackbox Tester can also check the standard output produced by a command.
+
+To do this, place the expected output in a text file `stdout.txt`. Here's a layout of a folder containing a standard out test:
 
 
+```
+    some_test/
+      input/
+        existing_file.txt
+      output/
+        existing_file.txt
+        file_created_by_cat.txt
+      stdout.txt   <----- the expected standard out contents
+      config.yml      
+```
+
+Should the `stdout.txt` contents not match what the command actually output, a file is saved that shows the actual output: `stdout_working.txt`. You shoould diff this against your `stdout.txt` file to see any differences.
 
