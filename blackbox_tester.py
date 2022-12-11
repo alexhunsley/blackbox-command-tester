@@ -263,11 +263,11 @@ def clean_test_suite(root_dir):
 		if STDOUT_WORKING_COPY_FILE in files:
 			file_to_remove = os.path.join(root, STDOUT_WORKING_COPY_FILE)
 			os.remove(file_to_remove)
-			print(f"Deleted file: {file_to_remove}")
+			# print(f"Deleted file: {file_to_remove}")
 
 		if WORKING_DIR in dirs:
 			dir_to_remove = os.path.join(root, WORKING_DIR)
-			print(f"Deleted dir: {dir_to_remove}")
+			# print(f"Deleted dir: {dir_to_remove}")
 			shutil.rmtree(dir_to_remove)
 
 
@@ -278,9 +278,9 @@ def run(test_suite_dir, clean):
 
 	# print("TEST SUITE DIR: ", test_suite_dir) DE
 
-	print(f"Cleaning artifacts from test suite dir: {test_suite_dir}")
+	print(f"Cleaning artifacts from test suite dir: {test_suite_dir}\n")
 	clean_test_suite(test_suite_dir)
-	print("Done.\n\n")
+	# print("Done.\n\n")
 
 	if clean:
 		sys.exit(0)
