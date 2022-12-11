@@ -222,6 +222,7 @@ def run_all_tests(root_dir):
 		failed_test_count = 0
 
 		dirs_filt = [x for x in dirs if not x in ignore_dirs]
+		dirs_filt.sort()
 		# print("dirs_filt = ", dirs_filt)
 
 		for dir in dirs_filt:
