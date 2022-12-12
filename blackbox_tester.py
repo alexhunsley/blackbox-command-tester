@@ -56,22 +56,41 @@ def make_abs_path(rel_path):
 
 # gets a value for key from yaml. Vars can be a dict of string replacements, or None.
 # returns None if a key not found
-def get_yaml_value(yaml, key, vars = None):
-	if value := yaml.get(key, None):
+def get_yaml_value(yaml, global_yaml, key, vars = None, default_value = None):
+	value = yaml.get(key, default_value)
 
 		# print(f"BEFORE value = {value}")
-		if vars:
-			for replace_key, replace_value in vars.items():
-				value = value.replace(replace_key, replace_value)
+	if not value:
+		print(f"Didn't find {key} in yaml, looking in global_yaml = {global_yaml}: ")
+		value = global_yaml.get(key, default_value)
+		print(f"   ... and I found {value}")
+
+
+	if value and vars:
+		print("DSFDSFS")
+		for replace_key, replace_value in vars.items():
+			value = value.replace(replace_key, replace_value)
 
 	# print(f"AFTER value = {value}")
 
 	return value
 
+
 # run single in-out comparison test in this folder.
 # Returns (bool, bool) for (problem was found trying to run tests for this test suite dir, stdout problem status or comparison status (i.e. success/fail))
-def run_command_and_compare(vars, root_dir, target_folder, test_index, expected_stdout_content = None):
+def run_command_and_compare(global_config, root_dir, target_folder, test_index, expected_stdout_content = None):
 	# print(f"Running test at {folder}, wd = ", os.getcwd())
+
+	vars = {}
+
+	if global_config:
+		print("============ gpt global config!")
+		vars = global_config.get('variables', {})
+
+		# print(f"|{global_config}|")
+
+		vars = dict((f"{{{key}}}", val) for key, val in vars.items())
+
 
 	stdout_mismatch_found = False
 
@@ -86,6 +105,12 @@ def run_command_and_compare(vars, root_dir, target_folder, test_index, expected_
 		print(f'\nNo config.yaml found in {target_folder}')
 		return (False, False)
 
+	if testy := get_yaml_value(config, global_config, "test_var"):
+		print(f"0---------- testy: {testy}")
+	else:
+		print("No tresty found")
+
+
 	# print(config)
 
 	differences = []
@@ -99,10 +124,9 @@ def run_command_and_compare(vars, root_dir, target_folder, test_index, expected_
 
 	# copy input to working folder
 
-	command = get_yaml_value(config, "command", vars)
+	command = get_yaml_value(config, global_config, "command", vars)
 
-
-	if input_strings := config.get("text_input", None):
+	if input_strings := get_yaml_value(config, global_config, "text_input", vars):
 		input_strings = '%s\n' % '\n'.join(input_strings)
 		input_strings_binary = input_strings.encode('ascii')
 	else:
@@ -142,8 +166,7 @@ def run_command_and_compare(vars, root_dir, target_folder, test_index, expected_
 
 	# print(f"differences: {differences}")
 
-	# command = get_yaml_value(config, key, vars)
-	test_description = get_yaml_value(config, 'test_description', vars)
+	test_description = get_yaml_value(config, global_config, 'test_description', vars)
 
 	# test_failed = True if len(differences) == 0 else False
 	test_failed = (len(differences) > 0)
@@ -188,6 +211,8 @@ def run_command_and_compare(vars, root_dir, target_folder, test_index, expected_
 
 def run_all_tests(root_dir):
 
+	print(f"AA 1.1    Running test at {os.getcwd()}")
+
 	if not os.path.exists(root_dir):
 		print(f"Couldn't find test suite directory: {root_dir}.\nExiting.\n\n")
 		sys.exit(1)
@@ -197,23 +222,26 @@ def run_all_tests(root_dir):
 
 	# print(f"Config: {config_file}")
 
-	vars = {}
+	global_config = {}
 
 	yaml_global_config_path = f'{root_dir}/{YAML_GLOBAL_CONFIG_FILE}'
 
+	print(f"AA 1 global path = {yaml_global_config_path}")
+	print(f"AA 1.5    Running test at {os.getcwd()}")
+
 	if os.path.exists(yaml_global_config_path):
+		print("AA 2")
 		try: 
 			with open(yaml_global_config_path, 'r') as file:
 				global_config = yaml.safe_load(file)
 		except IOError as E:
+			print("AA 4")
+
 			print(f"\nCouldn't open global.yaml found in {root_dir}")
 			return (False, False)
 
-		vars = global_config['variables']
 
-		# print(f"|{global_config}|")
-
-		vars = dict((f"{{{key}}}", val) for key, val in vars.items())
+	print("AA 5")
 
 	for root, dirs, files in os.walk(root_dir, topdown=True):
 
@@ -237,7 +265,7 @@ def run_all_tests(root_dir):
 				with open(stdout_filename, 'rb') as f:
 					stdout_expected = f.read()
 
-			(found_test_suite, test_status) = run_command_and_compare(vars, root_dir, target_dir, test_index, stdout_expected)
+			(found_test_suite, test_status) = run_command_and_compare(global_config, root_dir, target_dir, test_index, stdout_expected)
 
 			if not found_test_suite:
 				print('\nError when running test suite, giving up. Did you specify the correct folder?\nTypically you want to specify a folder two directories up from the input/ and output/ folders.\n')
@@ -278,6 +306,8 @@ def run(test_suite_dir, clean):
 
 	# print("TEST SUITE DIR: ", test_suite_dir) DE
 
+	print(f"AA 1.0    Running test at {os.getcwd()}")
+
 	print(f"Cleaning artifacts from test suite dir: {test_suite_dir}\n")
 	clean_test_suite(test_suite_dir)
 	# print("Done.\n\n")
@@ -292,6 +322,4 @@ def run(test_suite_dir, clean):
 
 if __name__ == '__main__':
 	run()
-
-
 
