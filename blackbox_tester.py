@@ -81,16 +81,7 @@ def get_yaml_value(yaml, global_yaml, key, vars = None, default_value = None):
 def run_command_and_compare(global_config, root_dir, target_folder, test_index, expected_stdout_content = None):
 	# print(f"Running test at {folder}, wd = ", os.getcwd())
 
-	vars = {}
-
-	if global_config:
-		print("============ gpt global config!")
-		vars = global_config.get('variables', {})
-
-		# print(f"|{global_config}|")
-
-		vars = dict((f"{{{key}}}", val) for key, val in vars.items())
-
+	vars = global_config.get('variables', {})
 
 	stdout_mismatch_found = False
 
@@ -239,6 +230,17 @@ def run_all_tests(root_dir):
 
 			print(f"\nCouldn't open global.yaml found in {root_dir}")
 			return (False, False)
+
+	# remap all vars to {var} inm the global config
+	if global_config:
+		print("============ gpt global config!")
+		vars = global_config.get('variables', {})
+
+		# print(f"|{global_config}|")
+
+		vars = dict((f"{{{key}}}", val) for key, val in vars.items())
+
+		global_config['variables'] = vars
 
 
 	print("AA 5")
