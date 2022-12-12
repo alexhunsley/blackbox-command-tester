@@ -32,7 +32,7 @@ Note that `test_description` is cosmetic only, but is worth specifying -- it wil
 
 # Blackbox Tester runs a suite of tests
 
-If you look inside the directory `examples_tests`, you'll see three folders, which specify three tests:
+If you look inside the directory `example_tests`, you'll see three folders, which specify three tests:
 
 ```
     0_cat_command_creates_a_file
@@ -40,7 +40,7 @@ If you look inside the directory `examples_tests`, you'll see three folders, whi
     2_a_faulty_test_that_demonstrates_failure
 ```
 
-This `example_tests` folder comprises a *test suite*. When you run Blackbox Tester, you point it at a test suite directory, not at a single test, and it runs all the tests it finds in that test suite directory.
+This `example_tests` folder comprises a *test suite*. When you run Blackbox Tester, you point it at a test suite directory, and all the tests in that directory are run. The directory names don't matter; try to give them briefly descriptive names.
 
 For example, to run the `example_tests` suite, you run the command:
 
@@ -71,12 +71,7 @@ The output summarises the success or failure of every test in the suite:
     Done.
 ```
 
-Test 2 has deliberately been set up to demonstrate failure. When a test fails because the `input` folder contents don't match the `output` folder contents, Blackbox Tester leaves a directory named `working` behind to help you debug the issue. To see the problem, run your favourite diff tool on these two directories inside `example_tests/2_a_faulty_test_that_demonstrates_failure`: 
-
-```
-   output/
-   working/
-```
+Test 2 has deliberately been set up to demonstrate failure. When a test fails because the `input` folder contents don't match the `output` folder contents, Blackbox Tester leaves a directory named `working` behind to help you debug the issue. To see the problem, run your favourite diff tool on the directories `output/` and `working/` inside the failed test.
 
 Any diff you see is the cause of the failure. In this case, it's the presence of a file `orphan_in_input.txt` in the `input` folder that isn't present in the `output` folder.
 
@@ -102,7 +97,10 @@ To do this, place the expected output in a text file `stdout.txt`. Here's a layo
 
 Should the `stdout.txt` contents not match what the command actually output, a file is saved that shows the actual output: `stdout_working.txt`. You shoould diff this against your `stdout.txt` file to see any differences.
 
+Note that the `--clean` command also removes any `stdout_working.txt` files it finds.
+
 # Checking in empty input/output directories using Git
 
 You might want to use an empty `input` or `output` folder for a test. This is fine as far as Blackbox Tester is concerned, but if you're using git for source control, you might have a problem because it doesn't 'see' empty folders. To get around this, put an empty file `.blackbox_ignore_this_file` inside any empty folder. It's a file name that Blackbox Tester ignores, but it will allow git to see the folder.
+
 

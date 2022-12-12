@@ -312,7 +312,8 @@ def compare_folders(folder1, folder2, differences, exit_on_first_difference = Fa
                 os.path.join(folder2, file),
                 differences,
                 exit_on_first_difference,
-                section_size = section_size
+                section_size = section_size,
+                ignore_files = ignore_files
             )
             continue
         elif num_dirs == 1:
