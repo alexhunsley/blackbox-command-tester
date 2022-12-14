@@ -44,9 +44,11 @@ STD_OUT_EXPECTED_CONTENT_FILENAME = "stdout.txt"
 
 ignore_dirs = ["ignore_contents", ".git"]
 
-def prRed(skk, end = '\n'): print("\033[91m{}\033[00m".format(skk), end = end)
 
-def prYellow(skk): print("\033[93m{}\033[00m" .format(skk))
+def pr_red(skk, end='\n'): print("\033[91m{}\033[00m".format(skk), end=end)
+
+
+def pr_yellow(skk): print("\033[93m{}\033[00m".format(skk))
 
 
 def make_abs_path(rel_path):
@@ -56,34 +58,33 @@ def make_abs_path(rel_path):
 
 # gets a value for key from yaml. Vars can be a dict of string replacements, or None.
 # returns None if a key not found
-def get_yaml_value(yaml, global_yaml, key, vars = None, default_value = None):
+def get_yaml_value(yaml, global_yaml, key, vars=None, default_value=None):
 	value = yaml.get(key, default_value)
 
 	if not value:
 		value = global_yaml.get(key, default_value)
 
 	if vars and value:
-			# value is a string
-			for replace_key, replace_value in vars.items():
-				if isinstance(value, list):
-					value = [v.replace(replace_key, replace_value) for v in value]
-				else:
-					value = value.replace(replace_key, replace_value)
+		# value is a string
+		for replace_key, replace_value in vars.items():
+			if isinstance(value, list):
+				value = [v.replace(replace_key, replace_value) for v in value]
+			else:
+				value = value.replace(replace_key, replace_value)
 
 	return value
 
 
 # run single in-out comparison test in this folder.
 # Returns (bool, bool) for (problem was found trying to run tests for this test suite dir, stdout problem status or comparison status (i.e. success/fail))
-def run_command_and_compare(global_config, root_dir, target_folder, test_index, expected_stdout_content = None):
-
+def run_command_and_compare(global_config, root_dir, target_folder, test_index, expected_stdout_content=None):
 	vars = global_config.get('variables', {})
 
 	stdout_mismatch_found = False
 
 	config_file = os.path.join(target_folder, YAML_CONFIG_FILE)
 
-	try: 
+	try:
 		with open(f'{target_folder}/config.yaml', 'r') as file:
 			config = yaml.safe_load(file)
 	except IOError as E:
@@ -114,12 +115,13 @@ def run_command_and_compare(global_config, root_dir, target_folder, test_index, 
 
 	completed_process = subprocess.run(command, input=input_strings_binary, shell=True, capture_output=True)
 
-	expected_return_code = int(get_yaml_value(config, global_config, "expected_return_code", vars, default_value = 0))
+	expected_return_code = int(get_yaml_value(config, global_config, "expected_return_code", vars, default_value=0))
 
 	print(f"Code: {completed_process.returncode} expected code: {expected_return_code}")
-	
+
 	if completed_process.returncode != expected_return_code:
-		differences.append(f"Running the command returned status code: {completed_process.returncode} when expected: {expected_return_code}")
+		differences.append(
+			f"Running the command returned status code: {completed_process.returncode} when expected: {expected_return_code}")
 	else:
 		if expected_stdout_content != None:
 
@@ -129,11 +131,12 @@ def run_command_and_compare(global_config, root_dir, target_folder, test_index, 
 				differences.append(f"* standard out didn't match the output given in stdout.txt.")
 				# differences.append(f"* standard out didn't match the output given in stdout.txt. Expected:\n===8<===\n{expected_stdout_content}\n=== but I got:\n{response}\n===8<===")
 				stdout_mismatch_found = True
-			
+
 		# back to target_folder (root of this single test)
 		os.chdir("..")
 
-		compare_folders(WORKING_DIR, EXPECTED_OUTPUT_DIR, differences, exit_on_first_difference = False, section_size = 1024 * 64, ignore_files = ['.DS_Store', '.blackbox_ignore_this_file'])
+		compare_folders(WORKING_DIR, EXPECTED_OUTPUT_DIR, differences, exit_on_first_difference=False,
+						section_size=1024 * 64, ignore_files=['.DS_Store', '.blackbox_ignore_this_file'])
 
 	test_description = get_yaml_value(config, global_config, 'test_description', vars)
 
@@ -148,14 +151,14 @@ def run_command_and_compare(global_config, root_dir, target_folder, test_index, 
 	output = f"Test {test_index} {result} \"{test_description}\" in dir \"{target_folder}\""
 
 	if test_failed:
-		prRed(output)
+		pr_red(output)
 	else:
 		print(output)
 
 	if test_failed:
 		indent = '   '
 		indent_newline = f"\n{indent}"
-		prYellow("%s%s" % (indent, indent_newline.join(differences)))
+		pr_yellow("%s%s" % (indent, indent_newline.join(differences)))
 
 	if stdout_mismatch_found:
 		stdout_as_ascii = response.decode('ascii')
@@ -173,7 +176,6 @@ def run_command_and_compare(global_config, root_dir, target_folder, test_index, 
 
 
 def run_all_tests(root_dir):
-
 	if not os.path.exists(root_dir):
 		print(f"Couldn't find test suite directory: {root_dir}.\nExiting.\n\n")
 		sys.exit(1)
@@ -183,7 +185,7 @@ def run_all_tests(root_dir):
 	yaml_global_config_path = f'{root_dir}/{YAML_GLOBAL_CONFIG_FILE}'
 
 	if os.path.exists(yaml_global_config_path):
-		try: 
+		try:
 			with open(yaml_global_config_path, 'r') as file:
 				global_config = yaml.safe_load(file)
 		except IOError as E:
@@ -199,7 +201,6 @@ def run_all_tests(root_dir):
 
 		global_config['variables'] = vars
 
-
 	for root, dirs, files in os.walk(root_dir, topdown=True):
 
 		test_index = 0
@@ -212,7 +213,7 @@ def run_all_tests(root_dir):
 		for dir in dirs_filt:
 
 			target_dir = os.path.join(root_dir, dir)
-			
+
 			stdout_expected = None
 
 			stdout_filename = os.path.join(target_dir, STD_OUT_EXPECTED_CONTENT_FILENAME)
@@ -221,10 +222,12 @@ def run_all_tests(root_dir):
 				with open(stdout_filename, 'rb') as f:
 					stdout_expected = f.read()
 
-			(found_test_suite, test_status) = run_command_and_compare(global_config, root_dir, target_dir, test_index, stdout_expected)
+			(found_test_suite, test_status) = run_command_and_compare(global_config, root_dir, target_dir, test_index,
+																	  stdout_expected)
 
 			if not found_test_suite:
-				print('\nError when running test suite, giving up. Did you specify the correct folder?\nTypically you want to specify a folder two directories up from the input/ and output/ folders.\n')
+				print(
+					'\nError when running test suite, giving up. Did you specify the correct folder?\nTypically you want to specify a folder two directories up from the input/ and output/ folders.\n')
 				sys.exit(1)
 
 			if test_status:
@@ -258,7 +261,6 @@ def clean_test_suite(root_dir):
 @click.argument('test_suite_dir')
 @click.option('--clean', is_flag=True, help='Clean the test suite dir of output fragments')
 def run(test_suite_dir, clean):
-
 	# print("TEST SUITE DIR: ", test_suite_dir) DE
 
 	# print(f"Running test at {os.getcwd()}")
@@ -275,6 +277,6 @@ def run(test_suite_dir, clean):
 
 	print("Done.\n\n")
 
+
 if __name__ == '__main__':
 	run()
-
