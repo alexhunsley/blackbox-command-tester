@@ -20,14 +20,11 @@
 #  https://stackoverflow.com/a/8475367
 #
 
-import click
-
-import yaml
-
-import os
-import hashlib
 import shutil
 import subprocess
+
+import click
+import yaml
 
 from dir_comparison.dir_comparison import *
 from dir_comparison.fake_file_system import *
@@ -75,8 +72,8 @@ def get_yaml_value(yaml, global_yaml, key, vars=None, default_value=None):
     return value
 
 
-# run single in-out comparison test in this folder.
-# Returns (bool, bool) for (problem was found trying to run tests for this test suite dir, stdout problem status or comparison status (i.e. success/fail))
+# run single in-out comparison test in this folder. Returns (bool, bool) for (problem was found trying to run tests
+# for this test suite dir, stdout problem status or comparison status (i.e. success/fail))
 def run_command_and_compare(global_config, root_dir, target_folder, test_index, expected_stdout_content=None):
     vars = global_config.get('variables', {})
 
@@ -89,7 +86,7 @@ def run_command_and_compare(global_config, root_dir, target_folder, test_index, 
             config = yaml.safe_load(file)
     except IOError as E:
         print(f'\nNo config.yaml found in {target_folder}')
-        return (False, False)
+        return False, False
 
     differences = []
 
@@ -123,13 +120,14 @@ def run_command_and_compare(global_config, root_dir, target_folder, test_index, 
         differences.append(
             f"Running the command returned status code: {completed_process.returncode} when expected: {expected_return_code}")
     else:
-        if expected_stdout_content != None:
+        if expected_stdout_content is not None:
 
             response = completed_process.stdout
 
             if response != expected_stdout_content:
                 differences.append(f"* standard out didn't match the output given in stdout.txt.")
-                # differences.append(f"* standard out didn't match the output given in stdout.txt. Expected:\n===8<===\n{expected_stdout_content}\n=== but I got:\n{response}\n===8<===")
+                # differences.append(f"* standard out didn't match the output given in stdout.txt.
+                # Expected:\n===8<===\n{expected_stdout_content}\n=== but I got:\n{response}\n===8<===")
                 stdout_mismatch_found = True
 
         # back to target_folder (root of this single test)
@@ -161,7 +159,7 @@ def run_command_and_compare(global_config, root_dir, target_folder, test_index, 
         pr_yellow("%s%s" % (indent, indent_newline.join(differences)))
 
     if stdout_mismatch_found:
-        stdout_as_ascii = response.decode('ascii')
+        # stdout_as_ascii = response.decode('ascii')
 
         with open(STDOUT_WORKING_COPY_FILE, 'wb') as stdout_found:
             stdout_found.write(response)
@@ -172,7 +170,7 @@ def run_command_and_compare(global_config, root_dir, target_folder, test_index, 
 
     test_succeeded = (not stdout_mismatch_found) and len(differences) == 0
 
-    return (True, test_succeeded)
+    return True, test_succeeded
 
 
 def run_all_tests(root_dir):
@@ -188,10 +186,10 @@ def run_all_tests(root_dir):
         try:
             with open(yaml_global_config_path, 'r') as file:
                 global_config = yaml.safe_load(file)
-        except IOError as E:
+        except IOError:
 
             print(f"\nCouldn't open global.yaml found in {root_dir}")
-            return (False, False)
+            return False, False
 
     # remap all vars to {var} inm the global config
     if global_config:
@@ -227,7 +225,8 @@ def run_all_tests(root_dir):
 
             if not found_test_suite:
                 print(
-                    '\nError when running test suite, giving up. Did you specify the correct folder?\nTypically you want to specify a folder two directories up from the input/ and output/ folders.\n')
+                    '\nError when running test suite, giving up. Did you specify the correct folder?\nTypically you '
+                    'want to specify a folder two directories up from the input/ and output/ folders.\n')
                 sys.exit(1)
 
             if test_status:
