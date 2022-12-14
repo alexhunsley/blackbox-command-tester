@@ -1,9 +1,4 @@
-from pyfakefs import fake_filesystem
-from pyfakefs.fake_filesystem import *
 from pyfakefs.fake_filesystem_unittest import Patcher
-import pyfakefs
-
-import sys
 
 import os
 import hashlib

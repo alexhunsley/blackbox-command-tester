@@ -1,10 +1,7 @@
 # fake_file_system.py
 
-import os
-
 from pyfakefs import fake_filesystem
 from pyfakefs.fake_filesystem import *
-from pyfakefs.fake_filesystem_unittest import Patcher
 
 def char_count(str, c):
 	return len(str.split(c))
