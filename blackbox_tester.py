@@ -114,8 +114,12 @@ def run_command_and_compare(global_config, root_dir, target_folder, test_index, 
 
 	completed_process = subprocess.run(command, input=input_strings_binary, shell=True, capture_output=True)
 
-	if completed_process.returncode != 0:
-		differences.append(f"Running the command failed, status code: {completed_process.returncode}")
+	expected_return_code = int(get_yaml_value(config, global_config, "expected_return_code", vars, default_value = 0))
+
+	print(f"Code: {completed_process.returncode} expected code: {expected_return_code}")
+	
+	if completed_process.returncode != expected_return_code:
+		differences.append(f"Running the command returned status code: {completed_process.returncode} when expected: {expected_return_code}")
 	else:
 		if expected_stdout_content != None:
 
