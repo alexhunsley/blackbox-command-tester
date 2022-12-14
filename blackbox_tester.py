@@ -55,8 +55,10 @@ def make_abs_path(rel_path):
 
 # gets a value for key from yaml. Vars can be a dict of string replacements, or None.
 # returns None if a key not found
-def get_yaml_value(yaml, global_yaml, key, vars=None, default_value=None):
-    value = yaml.get(key, default_value)
+def get_yaml_value_raw(yaml, global_yaml, key, vars=None, default_value=None):
+    raw_value = yaml.get(key, default_value)
+
+    value = raw_value
 
     if not value:
         value = global_yaml.get(key, default_value)
@@ -69,12 +71,16 @@ def get_yaml_value(yaml, global_yaml, key, vars=None, default_value=None):
             else:
                 value = value.replace(replace_key, replace_value)
 
-    return value
+    return value, raw_value
+
+
+def get_yaml_value(yaml, global_yaml, key, vars=None, default_value=None):
+    return get_yaml_value_raw(yaml, global_yaml, key, vars, default_value)[0]
 
 
 # run single in-out comparison test in this folder. Returns (bool, bool) for (problem was found trying to run tests
 # for this test suite dir, stdout problem status or comparison status (i.e. success/fail))
-def run_command_and_compare(global_config, root_dir, target_folder, test_index, expected_stdout_content=None):
+def run_command_and_compare(global_config, target_folder, test_index, expected_stdout_content=None, summary_csv=False):
     vars = global_config.get('variables', {})
 
     stdout_mismatch_found = False
@@ -99,9 +105,12 @@ def run_command_and_compare(global_config, root_dir, target_folder, test_index, 
 
     # copy input to working folder
 
-    command = get_yaml_value(config, global_config, "command", vars)
+    command, raw_command = get_yaml_value_raw(config, global_config, "command", vars)
 
-    if input_strings := get_yaml_value(config, global_config, "text_input", vars):
+    print(f'found command: {command}')
+    input_strings = get_yaml_value(config, global_config, "text_input", vars)
+
+    if input_strings is not None:
         input_strings = '%s\n' % '\n'.join(input_strings)
         input_strings_binary = input_strings.encode('ascii')
     else:
@@ -114,7 +123,7 @@ def run_command_and_compare(global_config, root_dir, target_folder, test_index, 
 
     expected_return_code = int(get_yaml_value(config, global_config, "expected_return_code", vars, default_value=0))
 
-    print(f"Code: {completed_process.returncode} expected code: {expected_return_code}")
+    # print(f"Code: {completed_process.returncode} expected code: {expected_return_code}")
 
     if completed_process.returncode != expected_return_code:
         differences.append(
@@ -144,9 +153,12 @@ def run_command_and_compare(global_config, root_dir, target_folder, test_index, 
         # we want to keep working dir for comparisons when tests fail.
         shutil.rmtree(WORKING_DIR, ignore_errors=True)
 
-    result = f"FAILED: " if test_failed else f"SUCCESS: "
+    result = f"FAILED" if test_failed else f"SUCCESS"
 
-    output = f"Test {test_index} {result} \"{test_description}\" in dir \"{target_folder}\""
+    if summary_csv:
+        output = f'{test_index},{result},"{test_description}","{os.path.basename(target_folder)}",{raw_command}'
+    else:
+        output = f"Test {test_index} {result}: \"{test_description}\" in dir \"{os.path.basename(target_folder)}\""
 
     if test_failed:
         pr_red(output)
@@ -220,8 +232,8 @@ def run_all_tests(root_dir):
                 with open(stdout_filename, 'rb') as f:
                     stdout_expected = f.read()
 
-            (found_test_suite, test_status) = run_command_and_compare(global_config, root_dir, target_dir, test_index,
-                                                                      stdout_expected)
+            (found_test_suite, test_status) = run_command_and_compare(global_config, target_dir, test_index,
+                                                                      stdout_expected, summary_csv=True)
 
             if not found_test_suite:
                 print(
