@@ -71,11 +71,11 @@ The output summarises the success or failure of every test in the suite:
     Done.
 ```
 
-Test 2 has deliberately been set up to demonstrate failure. When a test fails because the `input` folder contents don't match the `output` folder contents, Blackbox Tester leaves a directory named `working` behind to help you debug the issue. To see the problem, run your favourite diff tool on the directories `output/` and `working/` inside the failed test.
+Test 2 has deliberately been set up to demonstrate failure. When a test fails because the `input` folder contents don't match the `output` folder contents, Blackbox Tester tells you about any problems it found and leaves a directory named `working` behind to help you debug the issue. To see the differences, run your favourite diff tool on the directories `output/` and `working/` inside the failed test.
 
-Any diff you see is the cause of the failure. In this case, it's the presence of a file `orphan_in_input.txt` in the `input` folder that isn't present in the `output` folder.
+If you do that in this case, you'll see a file `orphan_in_input.txt` in the `input` folder that isn't present in the `output` folder.
 
-Once you've corrected your tests (or fixed a bug in your tool!), and want to try the tests again, you might think to remove the `working` folder(s). But there's no need to do this yourself: at the start of a test suite run, Blackbox Tester automatically removes any `working` folders. If you want to clean these folders up without running the test suite again, run `python3 blackbox_tester.py --clean`.
+Once you've corrected your tests (or fixed a bug in the tool you're testing!), and want to try the tests again, you might think to remove the `working` folder(s). But there's no need to do this yourself: at the start of a test suite run, Blackbox Tester automatically removes any `working` folders. If you want to clean these folders up without running the test suite again, run `python3 blackbox_tester.py --clean`.
 
 # Testing stdout output for a command
 
@@ -98,6 +98,14 @@ To do this, place the expected output in a text file `stdout.txt`. Here's a layo
 Should the `stdout.txt` contents not match what the command actually output, a file is saved that shows the actual output: `stdout_working.txt`. You shoould diff this against your `stdout.txt` file to see any differences.
 
 Note that the `--clean` command also removes any `stdout_working.txt` files it finds.
+
+# Recording standard out
+
+If you are confident that the tool you are testing is currently in a good working state, you can ask Blackbox Tester to record the standard out produced by all your tests into `stdout.txt` files for future verification:
+
+```
+    python3 blackbox_tester.py my_test_suite --record-stdout
+```
 
 # Checking in empty input/output directories using Git
 
