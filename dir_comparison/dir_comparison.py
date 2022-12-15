@@ -21,6 +21,7 @@ def test_answer():
 # the doctests require start/end section size that is v small, 4 is good.
 SECTION_SIZE_DEFAULT = 4
 
+
 # seek and tell to return the current file position after seek.
 # Doing this because pyfakefs returns None from Seek, like python2 does - backwards compatability thing?
 def seek_t(file, offset, whence):
@@ -35,7 +36,6 @@ def hash_data(data):
 def hash_file(filename):
     with open(filename, 'rb') as file:
         return hash_data(file.read())
-
 
 
 def compare_files(filename1, filename2, section_size=1024):
@@ -200,15 +200,14 @@ def set_to_sorted_list(s):
     return arr
 
 
-
 def pretty_print_differences(diffs):
     print(len(diffs))
     for difference in diffs:
         print(difference)
 
+
 @pytest.fixture()
 def comparison_of_folder_differences(fake_dirs_with_diffs):
-
     # we return an anonymous method -- this is how we can provide arg
     # to a fixture -- see https://stackoverflow.com/a/44701916
     def _method(exit_on_first_differences=False):
@@ -217,6 +216,7 @@ def comparison_of_folder_differences(fake_dirs_with_diffs):
         return differences
 
     return _method
+
 
 # note the param is a fixture defined in conftest.py
 def test_same_contents(fake_dirs_same_contents):
@@ -299,18 +299,15 @@ def test_exit_on_first_difference(comparison_of_folder_differences):
 #         pretty_print_differences(differences)
 
 
-
 # returns a set
 def filter_files(files, ignore_files):
-    
-    return set([x for x in files if not x in ignore_files])
+    return set([x for x in files if x not in ignore_files])
 
 
 # TODO use walkdir instead of listdir (which requires us to isdir())
-# returns True if the scan is to be aborted/was aborted due to first difference found.
-# Note that in this case we might still return >1 difference in the list.
+# returns True if the scan was aborted due to first difference found.
+# Only that first difference is returned in differences.
 def compare_folders(folder1, folder2, differences, exit_on_first_difference=False, section_size=SECTION_SIZE_DEFAULT, ignore_files=[]):
-
     files1 = filter_files(os.listdir(folder1), ignore_files)
     files2 = filter_files(os.listdir(folder2), ignore_files)
 
@@ -339,7 +336,7 @@ def compare_folders(folder1, folder2, differences, exit_on_first_difference=Fals
         # print(f"        processing {file}")
 
         num_dirs = (1 if os.path.isdir(os.path.join(folder1, file)) else 0) \
-                 + (1 if os.path.isdir(os.path.join(folder2, file)) else 0)
+                   + (1 if os.path.isdir(os.path.join(folder2, file)) else 0)
 
         # print(f"|||||||| numDir = {num_dirs}")
 
@@ -360,7 +357,7 @@ def compare_folders(folder1, folder2, differences, exit_on_first_difference=Fals
             differences.append(f"* One file, one folder: {file} in dirs {folder1} and {folder2}")
             if exit_on_first_difference:
                 return True
-            continue 
+            continue
         else:  # it's two files
             # Check if the file exists in the other folder
             # If the file exists, compare the contents of the files
