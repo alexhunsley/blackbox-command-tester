@@ -1,8 +1,20 @@
 from pyfakefs.fake_filesystem_unittest import Patcher
+# from dir_comparison.fake_file_system import *
+from dir_comparison import fake_file_system
+# from dir_comparison import make_fake_dirs_with_diff
 
 import os
 import hashlib
 import io
+import pytest
+
+def func(x):
+    return x + 1
+
+
+def test_answer():
+    assert func(3) == 4
+
 
 # SECTION_SIZE_DEFAULT = 1024
 # the doctests require start/end section size that is v small, 4 is good.
@@ -195,7 +207,7 @@ def pretty_print_differences(diffs):
 
 
 def test_same_contents():
-    """ 
+    """
 >>> test_same_contents()
 0
     """    
@@ -254,6 +266,7 @@ Between 0/dir1/dir1.1 and 1/dir1/dir1.1, found orphan files/folders: ['file_orph
     """
     with Patcher() as patcher:
         fs = fake_file_system.make_fake_dirs_with_diff(patcher.fs)
+        # fs = fake_file_system.make_fake_dirs_with_diff(patcher.fs)
         # print("compare_files result: (None = same) ", compare_files(f1, f2))
         differences = []
         compare_folders("0/", "1/", differences, True)
@@ -337,8 +350,8 @@ if __name__ == "__main__":
 
     # do here so it's not imported if we're used from another module (like black_box_tester.py)
     # as that fails
-    import fake_file_system
+    # from fake_file_system import *
 
     import doctest
-    print("Runnting doctests...")
+    print("Running doctests...")
     doctest.testmod()
