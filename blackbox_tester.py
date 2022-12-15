@@ -177,19 +177,19 @@ def run_command_and_compare(global_config, target_folder, test_index, expected_s
             raw_response = completed_process.stdout
             response = trim_lines_until_after_line_containing(raw_response, ignore_stdout_until_after_line_containing)
 
-            if expected_stdout_content is not None:
+            if record:
+                # we are recording standard out to file
+                # with stdout_expected = f.read()
+                print(f"Curr dir: {os.getcwd()}")
+                with open(expected_stdout_filename, 'wb') as stdout_file:
+                    stdout_file.write(response)
+            else:
                 if response != expected_stdout_content:
                     differences.append(f"* standard out didn't match the output given in stdout.txt.")
                     print(f"Len found: {len(response)}, len expected: {len(expected_stdout_content)}")
                     # differences.append(f"* standard out didn't match the output given in stdout.txt.
                     # Expected:\n===8<===\n{expected_stdout_content}\n=== but I got:\n{response}\n===8<===")
                     stdout_mismatch_found = True
-            else:
-                # we are recording standard out to file
-                # with stdout_expected = f.read()
-                print(f"Curr dir: {os.getcwd()}")
-                with open(expected_stdout_filename, 'wb') as stdout_file:
-                    stdout_file.write(response)
 
 
         # back to target_folder (root of this single test)
