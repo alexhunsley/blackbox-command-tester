@@ -1,9 +1,11 @@
 from pyfakefs.fake_filesystem_unittest import Patcher
 from dir_comparison import fake_file_system
+# from .dir_comparison import fake_dirs_same_contents
 
 import os
 import hashlib
 import io
+
 
 def func(x):
     return x + 1
@@ -202,6 +204,12 @@ def pretty_print_differences(diffs):
     for difference in diffs:
         print(difference)
 
+
+def test_same_contents_mit_fixture(fake_dirs_same_contents):
+    differences = []
+    compare_folders("0/", "1/", differences, False)
+    assert not differences, "Expected to find no differences" \
+                           ""
 
 def test_same_contents():
     """
