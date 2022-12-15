@@ -1,12 +1,9 @@
 from pyfakefs.fake_filesystem_unittest import Patcher
-# from dir_comparison.fake_file_system import *
 from dir_comparison import fake_file_system
-# from dir_comparison import make_fake_dirs_with_diff
 
 import os
 import hashlib
 import io
-import pytest
 
 def func(x):
     return x + 1
@@ -342,16 +339,3 @@ def compare_folders(folder1, folder2, differences, exit_on_first_difference = Fa
                 if exit_on_first_difference:
                     return
 
-
-# test_it_show_all_issues_with_diffs()
-
-
-if __name__ == "__main__":
-
-    # do here so it's not imported if we're used from another module (like black_box_tester.py)
-    # as that fails
-    # from fake_file_system import *
-
-    import doctest
-    print("Running doctests...")
-    doctest.testmod()
