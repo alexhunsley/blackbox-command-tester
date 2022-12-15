@@ -208,8 +208,8 @@ def pretty_print_differences(diffs):
 def test_same_contents_mit_fixture(fake_dirs_same_contents):
     differences = []
     compare_folders("0/", "1/", differences, False)
-    assert not differences, "Expected to find no differences" \
-                           ""
+    assert not differences, "Expected to find no differences"
+    
 
 def test_same_contents():
     """
