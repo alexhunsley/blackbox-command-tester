@@ -205,25 +205,11 @@ def pretty_print_differences(diffs):
         print(difference)
 
 
-def test_same_contents_mit_fixture(fake_dirs_same_contents):
+# note the param is a fixture defined in conftest.py
+def test_same_contents(fake_dirs_same_contents):
     differences = []
     compare_folders("0/", "1/", differences, False)
     assert not differences, "Expected to find no differences"
-    
-
-def test_same_contents():
-    """
->>> test_same_contents()
-0
-    """    
-    with Patcher() as patcher:
-        fs = fake_file_system.make_fake_dirs_same_contents(patcher.fs)
-        # print("compare_files result: (None = same) ", compare_files(f1, f2))
-        differences = []
-        compare_folders("0/", "1/", differences, False)
-        pretty_print_differences(differences)
-
-
 
 
 def test_no_diffs_when_no_contents():

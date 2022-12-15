@@ -1,7 +1,7 @@
 import pytest
 
 
-# takes the fs fixture which is patched-in a fake file system
+# takes the fs fixture which is a patched-in fake file system
 @pytest.fixture()
 def fake_dirs_same_contents(fs):
     # short identical files (full length checksum)
