@@ -110,7 +110,7 @@ def trim_lines_until_after_line_containing(lines_as_bytes, text_match):
 
 # run single in-out comparison test in this folder. Returns (bool, bool) for (problem was found trying to run tests
 # for this test suite dir, stdout problem status or comparison status (i.e. success/fail))
-def run_command_and_compare(global_config, target_folder, test_index, expected_stdout_filename=None, record_stdout=False, summary_csv=False):
+def run_command_and_compare(global_config, target_folder, test_index, expected_stdout_filename=None, record=False, summary_csv=False):
     vars = global_config.get('variables', {})
 
     config_file = os.path.join(target_folder, YAML_CONFIG_FILE)
@@ -133,11 +133,11 @@ def run_command_and_compare(global_config, target_folder, test_index, expected_s
 
     stdout_mismatch_found = False
 
-    stdout_expected = None
+    expected_stdout_content = None
 
-    if not record_stdout and os.path.exists(expected_stdout_filename):
+    if not record and os.path.exists(expected_stdout_filename):
         with open(expected_stdout_filename, 'rb') as f:
-            stdout_expected = f.read()
+            expected_stdout_content = f.read()
 
     # copy input to working folder
 
@@ -162,10 +162,6 @@ def run_command_and_compare(global_config, target_folder, test_index, expected_s
 
     ignore_stdout_until_after_line_containing = get_yaml_value(config, global_config, "ignore_stdout_until_after_line_containing", vars)
 
-    # we don't want to trim the expected output now! it's already trimmed!
-    #expected_stdout_content = trim_lines_until_after_line_containing(stdout_expected, ignore_stdout_until_after_line_containing)
-    expected_stdout_content = stdout_expected
-
     # print(f"before trim len: {len(stdout_expected)} after trim: {len(expected_stdout_content)} trim to {ignore_stdout_until_after_line_containing}")
     #
     # print(f"Code: {completed_process.returncode} expected code: {expected_return_code}")
@@ -176,7 +172,7 @@ def run_command_and_compare(global_config, target_folder, test_index, expected_s
         differences.append(
             f"Running the command returned status code: {completed_process.returncode} when expected: {expected_return_code}")
     else:
-        if expected_stdout_content is not None or record_stdout:
+        if expected_stdout_content is not None or record:
 
             raw_response = completed_process.stdout
             response = trim_lines_until_after_line_containing(raw_response, ignore_stdout_until_after_line_containing)
@@ -242,7 +238,7 @@ def run_command_and_compare(global_config, target_folder, test_index, expected_s
     return True, test_succeeded
 
 
-def run_all_tests(root_dir, record_stdout=False):
+def run_all_tests(root_dir, record=False):
     if not os.path.exists(root_dir):
         print(f"Couldn't find test suite directory: {root_dir}.\nExiting.\n\n")
         sys.exit(1)
@@ -287,7 +283,7 @@ def run_all_tests(root_dir, record_stdout=False):
             expected_stdout_filename = os.path.join("..", STD_OUT_EXPECTED_CONTENT_FILENAME)
 
             (found_test_suite, test_status) = run_command_and_compare(global_config, target_dir, test_index,
-                                                                      expected_stdout_filename, record_stdout, summary_csv=True)
+                                                                      expected_stdout_filename, record, summary_csv=True)
 
             if not found_test_suite:
                 print(
@@ -325,8 +321,8 @@ def clean_test_suite(root_dir):
 @click.command(no_args_is_help=False)
 @click.argument('test_suite_dir')
 @click.option('--clean', is_flag=True, help='Clean the test suite dir of output fragments')
-@click.option('--record-stdout', is_flag=True, help='Record standard out from tests as the expected content')
-def run(test_suite_dir, clean, record_stdout):
+@click.option('--record', is_flag=True, help='Record standard out from tests as the expected content')
+def run(test_suite_dir, clean, record):
     # print("TEST SUITE DIR: ", test_suite_dir) DE
 
     # print(f"Running test at {os.getcwd()}")
@@ -339,7 +335,7 @@ def run(test_suite_dir, clean, record_stdout):
         sys.exit(0)
 
     print(f"Running test suite in dir: {test_suite_dir}\n\n")
-    run_all_tests(test_suite_dir, record_stdout)
+    run_all_tests(test_suite_dir, record)
 
     print("Done.\n\n")
 
