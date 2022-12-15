@@ -5,6 +5,8 @@ from dir_comparison import fake_file_system
 import os
 import hashlib
 import io
+from pprint import pprint
+import pytest
 
 
 def func(x):
@@ -204,64 +206,97 @@ def pretty_print_differences(diffs):
     for difference in diffs:
         print(difference)
 
+@pytest.fixture()
+def comparison_of_folder_differences(fake_dirs_with_diffs):
+
+    # we return an anonymous method -- this is how we can provide arg
+    # to a fixture -- see https://stackoverflow.com/a/44701916
+    def _method(exit_on_first_differences=False):
+        differences = []
+        compare_folders("0/", "1/", differences, exit_on_first_differences)
+        return differences
+
+    return _method
 
 # note the param is a fixture defined in conftest.py
 def test_same_contents(fake_dirs_same_contents):
     differences = []
     compare_folders("0/", "1/", differences, False)
-    assert not differences, "Expected to find no differences"
+    assert not differences, "Expected to find no differences 1"
 
 
-def test_no_diffs_when_no_contents():
-    """ 
->>> test_no_diffs_when_no_contents()
-0
-    """    
-    with Patcher() as patcher:
-        fs = fake_file_system.make_fake_dirs_empty(patcher.fs)
-        # print("compare_files result: (None = same) ", compare_files(f1, f2))
-        differences = []
-        compare_folders("0/", "1/", differences, False)
-        pretty_print_differences(differences)
+# we just take an empty fs fixture directly
+def test_no_diffs_when_no_contents(fake_dirs_empty):
+    # print("compare_files result: (None = same) ", compare_files(f1, f2))
+    differences = []
+    compare_folders("0/", "1/", differences, False)
+    assert not differences, "Expected to find no differences 2"
 
 
-def test_it_show_all_issues_with_diffs():
-    """ 
->>> test_it_show_all_issues_with_diffs()
-7
-Between 0/dir1/dir1.1 and 1/dir1/dir1.1, found orphan files/folders: ['file_orphan_1.1.1.txt', 'file_orphan_1.1.1b.txt']
-* Size differs: 0/dir1/file1.2.txt != 1/dir1/file1.2.txt: 0/dir1/file1.2.txt = 20, 1/dir1/file1.2.txt = 25
-* One file, one folder: file-dir-same-name-A in dirs 0/ and 1/
-* One file, one folder: file-dir-same-name-B in dirs 0/ and 1/
-* Last part checksum mismatch: 0/file1_long_diff_end.txt and 1/file1_long_diff_end.txt
-* First part checksum mismatch: 0/file1_long_diff_start.txt and 1/file1_long_diff_start.txt
-* Full file checksum differs: 0/file1_short_diff.txt != 1/file1_short_diff.txt
->>>    
-    """
-    with Patcher() as patcher:
-        fs = fake_file_system.make_fake_dirs_with_diff(patcher.fs)
-        # print("compare_files result: (None = same) ", compare_files(f1, f2))
-        differences = []
-        compare_folders("0/", "1/", differences, False)
-        pretty_print_differences(differences)
+# differences returned in list are the strings:
+#
+# Between 0/dir1/dir1.1 and 1/dir1/dir1.1, found orphan files/folders: ['file_orphan_1.1.1.txt', 'file_orphan_1.1.1b.txt']
+# * Size differs: 0/dir1/file1.2.txt != 1/dir1/file1.2.txt: 0/dir1/file1.2.txt = 20, 1/dir1/file1.2.txt = 25
+# * One file, one folder: file-dir-same-name-A in dirs 0/ and 1/
+# * One file, one folder: file-dir-same-name-B in dirs 0/ and 1/
+# * Last part checksum mismatch: 0/file1_long_diff_end.txt and 1/file1_long_diff_end.txt
+# * First part checksum mismatch: 0/file1_long_diff_start.txt and 1/file1_long_diff_start.txt
+# * Full file checksum differs: 0/file1_short_diff.txt != 1/file1_short_diff.txt
 
 
-def test_it_exit_on_first_issue_with_diffs():
-    """ 
->>> test_it_exit_on_first_issue_with_diffs()
-3
-Between 0/dir1/dir1.1 and 1/dir1/dir1.1, found orphan files/folders: ['file_orphan_1.1.1.txt', 'file_orphan_1.1.1b.txt']
-* Size differs: 0/dir1/file1.2.txt != 1/dir1/file1.2.txt: 0/dir1/file1.2.txt = 20, 1/dir1/file1.2.txt = 25
-* One file, one folder: file-dir-same-name-A in dirs 0/ and 1/
->>>    
-    """
-    with Patcher() as patcher:
-        fs = fake_file_system.make_fake_dirs_with_diff(patcher.fs)
-        # fs = fake_file_system.make_fake_dirs_with_diff(patcher.fs)
-        # print("compare_files result: (None = same) ", compare_files(f1, f2))
-        differences = []
-        compare_folders("0/", "1/", differences, True)
-        pretty_print_differences(differences)
+def test_when_diffs_detect_seven_issues(comparison_of_folder_differences):
+    assert len(comparison_of_folder_differences()) == 7
+    # pprint(differences)
+
+
+def test_when_diffs_detect_orhpans(comparison_of_folder_differences):
+    assert "Between 0/dir1/dir1.1 and 1/dir1/dir1.1, found orphan files/folders: ['file_orphan_1.1.1.txt', 'file_orphan_1.1.1b.txt']" in comparison_of_folder_differences()
+    # pprint(differences)
+
+
+def test_when_diffs_detect_size_difference(comparison_of_folder_differences):
+    assert "* Size differs: 0/dir1/file1.2.txt != 1/dir1/file1.2.txt: 0/dir1/file1.2.txt = 20, 1/dir1/file1.2.txt = 25" in comparison_of_folder_differences()
+
+
+def test_when_diffs_one_file_one_folder_difference_a(comparison_of_folder_differences):
+    assert "* One file, one folder: file-dir-same-name-A in dirs 0/ and 1/" in comparison_of_folder_differences()
+
+
+def test_when_diffs_one_file_one_folder_difference_b(comparison_of_folder_differences):
+    assert "* One file, one folder: file-dir-same-name-B in dirs 0/ and 1/" in comparison_of_folder_differences()
+
+
+def test_when_diffs_first_part_checksum_difference_detected(comparison_of_folder_differences):
+    assert "* First part checksum mismatch: 0/file1_long_diff_start.txt and 1/file1_long_diff_start.txt" in comparison_of_folder_differences()
+
+
+def test_when_diffs_last_part_checksum_difference_detected(comparison_of_folder_differences):
+    assert "* Last part checksum mismatch: 0/file1_long_diff_end.txt and 1/file1_long_diff_end.txt" in comparison_of_folder_differences()
+
+
+def test_when_diffs_full_checksum_difference_detected(comparison_of_folder_differences):
+    assert "* Full file checksum differs: 0/file1_short_diff.txt != 1/file1_short_diff.txt" in comparison_of_folder_differences()
+
+
+def test_exit_on_first_difference(comparison_of_folder_differences):
+    assert "Between 0/dir1/dir1.1 and 1/dir1/dir1.1, found orphan files/folders: ['file_orphan_1.1.1.txt', 'file_orphan_1.1.1b.txt']" in comparison_of_folder_differences(True)
+
+# def test_it_exit_on_first_issue_with_diffs():
+#     """
+# >>> test_it_exit_on_first_issue_with_diffs()
+# 3
+# Between 0/dir1/dir1.1 and 1/dir1/dir1.1, found orphan files/folders: ['file_orphan_1.1.1.txt', 'file_orphan_1.1.1b.txt']
+# * Size differs: 0/dir1/file1.2.txt != 1/dir1/file1.2.txt: 0/dir1/file1.2.txt = 20, 1/dir1/file1.2.txt = 25
+# * One file, one folder: file-dir-same-name-A in dirs 0/ and 1/
+# >>>
+#     """
+#     with Patcher() as patcher:
+#         fs = fake_file_system.make_fake_dirs_with_diff(patcher.fs)
+#         # fs = fake_file_system.make_fake_dirs_with_diff(patcher.fs)
+#         # print("compare_files result: (None = same) ", compare_files(f1, f2))
+#         differences = []
+#         compare_folders("0/", "1/", differences, True)
+#         pretty_print_differences(differences)
 
 
 
@@ -272,7 +307,9 @@ def filter_files(files, ignore_files):
 
 
 # TODO use walkdir instead of listdir (which requires us to isdir())
-def compare_folders(folder1, folder2, differences, exit_on_first_difference = False, section_size = SECTION_SIZE_DEFAULT, ignore_files = []):
+# returns True if the scan is to be aborted/was aborted due to first difference found.
+# Note that in this case we might still return >1 difference in the list.
+def compare_folders(folder1, folder2, differences, exit_on_first_difference=False, section_size=SECTION_SIZE_DEFAULT, ignore_files=[]):
 
     files1 = filter_files(os.listdir(folder1), ignore_files)
     files2 = filter_files(os.listdir(folder2), ignore_files)
@@ -294,7 +331,8 @@ def compare_folders(folder1, folder2, differences, exit_on_first_difference = Fa
         files_with_slashes_end_dirs.sort()
 
         differences.append(f"Between {folder1} and {folder2}, found orphan files/folders: {files_with_slashes_end_dirs}")
-
+        if exit_on_first_difference:
+            return True
 
     # Compare the files in each folder
     for file in set_to_sorted_list(common_files):
@@ -306,19 +344,22 @@ def compare_folders(folder1, folder2, differences, exit_on_first_difference = Fa
         # print(f"|||||||| numDir = {num_dirs}")
 
         if num_dirs == 2:
-            compare_folders(
+            abort_status = compare_folders(
                 os.path.join(folder1, file),
                 os.path.join(folder2, file),
                 differences,
                 exit_on_first_difference,
-                section_size = section_size,
-                ignore_files = ignore_files
+                section_size=section_size,
+                ignore_files=ignore_files
             )
+            if abort_status:
+                return True
+
             continue
         elif num_dirs == 1:
             differences.append(f"* One file, one folder: {file} in dirs {folder1} and {folder2}")
             if exit_on_first_difference:
-                return
+                return True
             continue 
         else:  # it's two files
             # Check if the file exists in the other folder
@@ -326,10 +367,11 @@ def compare_folders(folder1, folder2, differences, exit_on_first_difference = Fa
             result_differences = compare_files(
                 os.path.join(folder1, file),
                 os.path.join(folder2, file),
-                section_size = section_size
+                section_size=section_size
             )
             if result_differences is not None:
                 differences.append(result_differences)
                 if exit_on_first_difference:
-                    return
+                    return True
 
+    return False

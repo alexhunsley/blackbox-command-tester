@@ -107,7 +107,6 @@ def run_command_and_compare(global_config, target_folder, test_index, expected_s
 
     command, raw_command = get_yaml_value_raw(config, global_config, "command", vars)
 
-    print(f'found command: {command}')
     input_strings = get_yaml_value(config, global_config, "text_input", vars)
 
     if input_strings is not None:
@@ -118,6 +117,8 @@ def run_command_and_compare(global_config, target_folder, test_index, expected_s
 
     # we need to do this in-script replacement AFTER any yaml variable replacements above
     command = command.replace("{WORKING_PATH}", make_abs_path(os.path.join(target_folder, WORKING_DIR)))
+
+    print(f'found command: {command}')
 
     completed_process = subprocess.run(command, input=input_strings_binary, shell=True, capture_output=True)
 
