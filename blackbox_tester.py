@@ -41,6 +41,8 @@ STD_OUT_EXPECTED_CONTENT_FILENAME = "stdout.txt"
 
 ignore_dirs = ["ignore_contents", ".git"]
 
+# ENCODING = 'ascii'
+ENCODING = 'utf-8'
 
 def pr_red(skk, end='\n'): print("\033[91m{}\033[00m".format(skk), end=end)
 
@@ -77,13 +79,39 @@ def get_yaml_value_raw(yaml, global_yaml, key, vars=None, default_value=None):
 def get_yaml_value(yaml, global_yaml, key, vars=None, default_value=None):
     return get_yaml_value_raw(yaml, global_yaml, key, vars, default_value)[0]
 
+# Note that this method takes and returns a byte string, only converting internally
+# to list of ascii lines.
+def trim_lines_until_after_line_containing(lines_as_bytes, text_match):
+    if not text_match or not lines_as_bytes:
+        return lines_as_bytes
+
+    # print(f"lines_as_bytes = {lines_as_bytes}")
+
+    all_lines = lines_as_bytes.decode(ENCODING)
+    lines = all_lines.split('\n')
+
+    return_lines = []
+
+    append_lines = False
+
+    for line in lines:
+        if append_lines:
+            return_lines.append(line)
+
+        if text_match in line:
+            append_lines = True
+
+    # convert back to byte string
+    all_lines = '\n'.join(return_lines)
+
+    # print(f"trim lines: returning {return_lines}")
+    return all_lines.encode(ENCODING)
+
 
 # run single in-out comparison test in this folder. Returns (bool, bool) for (problem was found trying to run tests
 # for this test suite dir, stdout problem status or comparison status (i.e. success/fail))
-def run_command_and_compare(global_config, target_folder, test_index, expected_stdout_content=None, summary_csv=False):
+def run_command_and_compare(global_config, target_folder, test_index, expected_stdout_filename=None, record_stdout=False, summary_csv=False):
     vars = global_config.get('variables', {})
-
-    stdout_mismatch_found = False
 
     config_file = os.path.join(target_folder, YAML_CONFIG_FILE)
 
@@ -103,6 +131,14 @@ def run_command_and_compare(global_config, target_folder, test_index, expected_s
 
     os.chdir(WORKING_DIR)
 
+    stdout_mismatch_found = False
+
+    stdout_expected = None
+
+    if not record_stdout and os.path.exists(expected_stdout_filename):
+        with open(expected_stdout_filename, 'rb') as f:
+            stdout_expected = f.read()
+
     # copy input to working folder
 
     command, raw_command = get_yaml_value_raw(config, global_config, "command", vars)
@@ -111,7 +147,7 @@ def run_command_and_compare(global_config, target_folder, test_index, expected_s
 
     if input_strings is not None:
         input_strings = '%s\n' % '\n'.join(input_strings)
-        input_strings_binary = input_strings.encode('ascii')
+        input_strings_binary = input_strings.encode(ENCODING)
     else:
         input_strings_binary = None
 
@@ -124,21 +160,41 @@ def run_command_and_compare(global_config, target_folder, test_index, expected_s
 
     expected_return_code = int(get_yaml_value(config, global_config, "expected_return_code", vars, default_value=0))
 
+    ignore_stdout_until_after_line_containing = get_yaml_value(config, global_config, "ignore_stdout_until_after_line_containing", vars)
+
+    # we don't want to trim the expected output now! it's already trimmed!
+    #expected_stdout_content = trim_lines_until_after_line_containing(stdout_expected, ignore_stdout_until_after_line_containing)
+    expected_stdout_content = stdout_expected
+
+    # print(f"before trim len: {len(stdout_expected)} after trim: {len(expected_stdout_content)} trim to {ignore_stdout_until_after_line_containing}")
+    #
     # print(f"Code: {completed_process.returncode} expected code: {expected_return_code}")
+
+    response = None
 
     if completed_process.returncode != expected_return_code:
         differences.append(
             f"Running the command returned status code: {completed_process.returncode} when expected: {expected_return_code}")
     else:
-        if expected_stdout_content is not None:
+        if expected_stdout_content is not None or record_stdout:
 
-            response = completed_process.stdout
+            raw_response = completed_process.stdout
+            response = trim_lines_until_after_line_containing(raw_response, ignore_stdout_until_after_line_containing)
 
-            if response != expected_stdout_content:
-                differences.append(f"* standard out didn't match the output given in stdout.txt.")
-                # differences.append(f"* standard out didn't match the output given in stdout.txt.
-                # Expected:\n===8<===\n{expected_stdout_content}\n=== but I got:\n{response}\n===8<===")
-                stdout_mismatch_found = True
+            if expected_stdout_content is not None:
+                if response != expected_stdout_content:
+                    differences.append(f"* standard out didn't match the output given in stdout.txt.")
+                    print(f"Len found: {len(response)}, len expected: {len(expected_stdout_content)}")
+                    # differences.append(f"* standard out didn't match the output given in stdout.txt.
+                    # Expected:\n===8<===\n{expected_stdout_content}\n=== but I got:\n{response}\n===8<===")
+                    stdout_mismatch_found = True
+            else:
+                # we are recording standard out to file
+                # with stdout_expected = f.read()
+                print(f"Curr dir: {os.getcwd()}")
+                with open(expected_stdout_filename, 'wb') as stdout_file:
+                    stdout_file.write(response)
+
 
         # back to target_folder (root of this single test)
         os.chdir("..")
@@ -172,9 +228,9 @@ def run_command_and_compare(global_config, target_folder, test_index, expected_s
         pr_yellow("%s%s" % (indent, indent_newline.join(differences)))
 
     if stdout_mismatch_found:
-        # stdout_as_ascii = response.decode('ascii')
 
         with open(STDOUT_WORKING_COPY_FILE, 'wb') as stdout_found:
+            # print(f"Writing len {len(response)} to file because not matched")
             stdout_found.write(response)
 
     print('\n')
@@ -186,7 +242,7 @@ def run_command_and_compare(global_config, target_folder, test_index, expected_s
     return True, test_succeeded
 
 
-def run_all_tests(root_dir):
+def run_all_tests(root_dir, record_stdout=False):
     if not os.path.exists(root_dir):
         print(f"Couldn't find test suite directory: {root_dir}.\nExiting.\n\n")
         sys.exit(1)
@@ -227,14 +283,11 @@ def run_all_tests(root_dir):
 
             stdout_expected = None
 
-            stdout_filename = os.path.join(target_dir, STD_OUT_EXPECTED_CONTENT_FILENAME)
-
-            if os.path.exists(stdout_filename):
-                with open(stdout_filename, 'rb') as f:
-                    stdout_expected = f.read()
+            # expected_stdout_filename = os.path.join(target_dir, STD_OUT_EXPECTED_CONTENT_FILENAME)
+            expected_stdout_filename = os.path.join("..", STD_OUT_EXPECTED_CONTENT_FILENAME)
 
             (found_test_suite, test_status) = run_command_and_compare(global_config, target_dir, test_index,
-                                                                      stdout_expected, summary_csv=True)
+                                                                      expected_stdout_filename, record_stdout, summary_csv=True)
 
             if not found_test_suite:
                 print(
@@ -272,7 +325,8 @@ def clean_test_suite(root_dir):
 @click.command(no_args_is_help=False)
 @click.argument('test_suite_dir')
 @click.option('--clean', is_flag=True, help='Clean the test suite dir of output fragments')
-def run(test_suite_dir, clean):
+@click.option('--record-stdout', is_flag=True, help='Record standard out from tests as the expected content')
+def run(test_suite_dir, clean, record_stdout):
     # print("TEST SUITE DIR: ", test_suite_dir) DE
 
     # print(f"Running test at {os.getcwd()}")
@@ -285,7 +339,7 @@ def run(test_suite_dir, clean):
         sys.exit(0)
 
     print(f"Running test suite in dir: {test_suite_dir}\n\n")
-    run_all_tests(test_suite_dir)
+    run_all_tests(test_suite_dir, record_stdout)
 
     print("Done.\n\n")
 
