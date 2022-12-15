@@ -172,15 +172,15 @@ def run_command_and_compare(global_config, target_folder, test_index, expected_s
         differences.append(
             f"Running the command returned status code: {completed_process.returncode} when expected: {expected_return_code}")
     else:
-        if expected_stdout_content is not None or record:
+        # if record = False, the latter can still be None, if no stdout.txt file specified.
+        if record or expected_stdout_content is not None:
 
             raw_response = completed_process.stdout
             response = trim_lines_until_after_line_containing(raw_response, ignore_stdout_until_after_line_containing)
 
             if record:
                 # we are recording standard out to file
-                # with stdout_expected = f.read()
-                print(f"Curr dir: {os.getcwd()}")
+                # print(f"Curr dir: {os.getcwd()}")
                 with open(expected_stdout_filename, 'wb') as stdout_file:
                     stdout_file.write(response)
             else:
@@ -192,11 +192,15 @@ def run_command_and_compare(global_config, target_folder, test_index, expected_s
                     stdout_mismatch_found = True
 
 
-        # back to target_folder (root of this single test)
+        # come up out of working/ folder, back to target_folder (root of this single test)
         os.chdir("..")
 
-        compare_folders(WORKING_DIR, EXPECTED_OUTPUT_DIR, differences, exit_on_first_difference=False,
-                        section_size=1024 * 64, ignore_files=['.DS_Store', '.blackbox_ignore_this_file'])
+        if record:
+            shutil.rmtree(EXPECTED_OUTPUT_DIR, ignore_errors=True)
+            os.rename(WORKING_DIR, EXPECTED_OUTPUT_DIR)
+        else:
+            compare_folders(WORKING_DIR, EXPECTED_OUTPUT_DIR, differences, exit_on_first_difference=False,
+                            section_size=1024 * 64, ignore_files=['.DS_Store', '.blackbox_ignore_this_file'])
 
     test_description = get_yaml_value(config, global_config, 'test_description', vars)
 
