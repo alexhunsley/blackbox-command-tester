@@ -85,7 +85,7 @@ Once you've corrected your tests (or fixed a bug in the tool you're testing!), a
 the `working` folder(s). But there's no need to do this yourself: at the start of a test suite run, Blackbox Tester automatically removes
 any `working` folders. If you want to clean these folders up without running the test suite again, run `python3 blackbox_tester.py --clean`.
 
-# Testing stdout output for a command
+# Testing standard output for a command
 
 Blackbox Tester can also check the standard output produced by a command.
 
@@ -103,14 +103,14 @@ To do this, place the expected output in a text file `stdout.txt`. Here's a layo
 ```
 
 Should the `stdout.txt` contents not match what the command actually output, a file is saved that shows the actual
-output: `stdout_working.txt`. You shoould diff this against your `stdout.txt` file to see any differences.
+output: `stdout_working.txt`. You can this against your `stdout.txt` file.
 
-Note that the `--clean` command also removes any `stdout_working.txt` files it finds.
+Note that the `--clean` command also removes any `stdout_working.txt` files it finds, as well as the `working/` folders.
 
-# Recording standard out
+# Record mode
 
-If you are confident that the tool you are testing is currently in a good working state, you can ask Blackbox Tester to record the standard
-out produced by all your tests into `stdout.txt` files for future verification:
+If you are confident that the tool you are testing is currently in a good working state, you can ask Blackbox Tester to create `output/`
+and `stdout.txt` based on what your tool actually produces. To do this, run the tool with the `--record` flag:
 
 ```
     python3 blackbox_tester.py my_test_suite --record-stdout
