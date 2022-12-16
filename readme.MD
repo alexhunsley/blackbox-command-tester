@@ -32,7 +32,7 @@ Note that `test_description` is cosmetic only, but is worth specifying -- it wil
 
 # Blackbox Tester runs a suite of tests
 
-If you look inside the directory `example_tests`, you'll see three folders, which specify three tests:
+If you look inside the directory `example_tests`, you'll see three folders, specifying three tests:
 
 ```
     0_cat_command_creates_a_file
