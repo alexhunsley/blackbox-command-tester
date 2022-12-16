@@ -5,16 +5,19 @@
 # Copyright Alex Hunsley 2022
 #
 #
-# [ ] add .blackbox-ignore empty file to any empty folders found. This is so git can check in empty folders which are a valid part of tests.
+# [x] add .blackbox-ignore empty file to any empty folders found. This is so git can check in empty folders which are a valid part of tests.
 # [x] add stdin so can test commands that require user input
-# [x] add tidy command that kills all working dirs and all stdout_working.txt files
+# [x] add clean command that kills all working dirs and all stdout_working.txt files
 # [x] add comparison of stdout to expected stdout
+# [x] add train mode -- records stout.txt and output/ from the tool run
+# [x] add 'show only failures' param
+# [ ] optional translation of 'first/last checksum' diffs to just checksum diff - consumer of folder compare doesn't usually care
+# [ ] remove the 'variables' dict, let anything at global.yaml level be a variable for {var_name}.
+# [ ] take target tests in suite as a param -- for running only some of them
+# [ ] (maybe) do file timestamp comparison input v output
+# [ ] make existing CSV output option a param
 #
 #
-# Possible future additions:
-#
-# train mode -- writes output to input files -- for use when you are sure the tool you are testing is behaving properly.
-#    -- could do either ALL or select tests in suite.
 #
 # stdin using subprocess:
 #  https://stackoverflow.com/a/8475367
@@ -110,7 +113,7 @@ def trim_lines_until_after_line_containing(lines_as_bytes, text_match):
 
 # run single in-out comparison test in this folder. Returns (bool, bool) for (problem was found trying to run tests
 # for this test suite dir, stdout problem status or comparison status (i.e. success/fail))
-def run_command_and_compare(global_config, target_folder, test_index, expected_stdout_filename=None, record=False, summary_csv=False):
+def run_command_and_compare(global_config, target_folder, test_index, expected_stdout_filename=None, record=False, report_failure_only=False, summary_csv=False):
     vars = global_config.get('variables', {})
 
     config_file = os.path.join(target_folder, YAML_CONFIG_FILE)
@@ -154,7 +157,7 @@ def run_command_and_compare(global_config, target_folder, test_index, expected_s
     # we need to do this in-script replacement AFTER any yaml variable replacements above
     command = command.replace("{WORKING_PATH}", make_abs_path(os.path.join(target_folder, WORKING_DIR)))
 
-    print(f'found command: {command}')
+    # print(f'found command: {command}')
 
     completed_process = subprocess.run(command, input=input_strings_binary, shell=True, capture_output=True)
 
@@ -212,20 +215,21 @@ def run_command_and_compare(global_config, target_folder, test_index, expected_s
 
     result = f"FAILED" if test_failed else f"SUCCESS"
 
-    if summary_csv:
-        output = f'{test_index},{result},"{test_description}","{os.path.basename(target_folder)}",{raw_command}'
-    else:
-        output = f"Test {test_index} {result}: \"{test_description}\" in dir \"{os.path.basename(target_folder)}\""
+    if not report_failure_only or test_failed:
+        if summary_csv:
+            output = f'{test_index},{result},"{test_description}","{os.path.basename(target_folder)}",{raw_command}'
+        else:
+            output = f"Test {test_index} {result}: \"{test_description}\" in dir \"{os.path.basename(target_folder)}\""
 
-    if test_failed:
-        pr_red(output)
-    else:
-        print(output)
+        if test_failed:
+            pr_red(output)
+        else:
+            print(output)
 
-    if test_failed:
-        indent = '   '
-        indent_newline = f"\n{indent}"
-        pr_yellow("%s%s" % (indent, indent_newline.join(differences)))
+        if test_failed:
+            indent = '   '
+            indent_newline = f"\n{indent}"
+            pr_yellow("%s%s" % (indent, indent_newline.join(differences)))
 
     if stdout_mismatch_found:
 
@@ -233,7 +237,7 @@ def run_command_and_compare(global_config, target_folder, test_index, expected_s
             # print(f"Writing len {len(response)} to file because not matched")
             stdout_found.write(response)
 
-    print('\n')
+    # print('\n')
     # back to root of test suite (where all test folders are based)
     os.chdir("../..")
 
@@ -242,7 +246,7 @@ def run_command_and_compare(global_config, target_folder, test_index, expected_s
     return True, test_succeeded
 
 
-def run_all_tests(root_dir, record=False):
+def run_all_tests(root_dir, record=False, report_failure_only=False):
     if not os.path.exists(root_dir):
         print(f"Couldn't find test suite directory: {root_dir}.\nExiting.\n\n")
         sys.exit(1)
@@ -287,7 +291,7 @@ def run_all_tests(root_dir, record=False):
             expected_stdout_filename = os.path.join("..", STD_OUT_EXPECTED_CONTENT_FILENAME)
 
             (found_test_suite, test_status) = run_command_and_compare(global_config, target_dir, test_index,
-                                                                      expected_stdout_filename, record, summary_csv=True)
+                                                                      expected_stdout_filename, record, report_failure_only, summary_csv=True)
 
             if not found_test_suite:
                 print(
@@ -305,7 +309,7 @@ def run_all_tests(root_dir, record=False):
         # replace dirs list in-place to stop any descending further in the tree
         dirs[:] = []
 
-    print(f"{failed_test_count} failures in {test_index} tests.\n")
+    print(f"\n{failed_test_count} failures in {test_index} tests.\n")
 
 
 # removes diagnostic files from test suite, i.e. working/ dirs and stdout_working.txt files
@@ -326,7 +330,8 @@ def clean_test_suite(root_dir):
 @click.argument('test_suite_dir')
 @click.option('--clean', is_flag=True, help='Clean the test suite dir of output fragments')
 @click.option('--record', is_flag=True, help='Record standard out from tests as the expected content')
-def run(test_suite_dir, clean, record):
+@click.option('--report-failure-only', is_flag=True, help='Only report details for failed tests')
+def run(test_suite_dir, clean, record, report_failure_only):
     # print("TEST SUITE DIR: ", test_suite_dir) DE
 
     # print(f"Running test at {os.getcwd()}")
@@ -339,7 +344,7 @@ def run(test_suite_dir, clean, record):
         sys.exit(0)
 
     print(f"Running test suite in dir: {test_suite_dir}\n\n")
-    run_all_tests(test_suite_dir, record)
+    run_all_tests(test_suite_dir, record, report_failure_only)
 
     print("Done.\n\n")
 
