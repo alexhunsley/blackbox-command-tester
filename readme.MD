@@ -2,10 +2,12 @@
 
 This is a proof-of-concept.
 
-It's a tool for verifying input files versus output files for a command line tool. Typically you'd use it to test a command line tool you'd written, to ensure that its functionality has not changed.
+It's a tool for verifying input files versus output files for a command line tool. Typically you'd use it to test a command line tool you'd
+written, to ensure that its functionality has not changed.
 
-As a very simple example, image you want to verify that the `cat` command is able to write to a file (and also that it will not change a file with a different name that already exists). The directory `examples_tests/0_cat_command_creates_a_file` demonstrates the setup to do this:
-
+As a very simple example, image you want to verify that the `cat` command is able to write to a file (and also that it will not change a
+file with a different name that already exists). The directory `examples_tests/0_cat_command_creates_a_file` demonstrates the setup to do
+this:
 
 ```
     0_cat_command_creates_a_file/
@@ -19,7 +21,8 @@ As a very simple example, image you want to verify that the `cat` command is abl
 
 This entire structure describes a single test.
 
-`Blackox_tester` works by running the command (specified in `config.yml`) against the contents of the `input` folder. It then verifies that the result matches what is in the `output` directory.
+`Blackox_tester` works by running the command (specified in `config.yml`) against the contents of the `input` folder. It then verifies that
+the result matches what is in the `output` directory.
 
 The `config.yml` file specifies what command to run:
 
@@ -40,7 +43,8 @@ If you look inside the directory `example_tests`, you'll see three folders, spec
     2_a_faulty_test_that_demonstrates_failure
 ```
 
-This `example_tests` folder comprises a *test suite*. When you run Blackbox Tester, you point it at a test suite directory, and all the tests in that directory are run. The directory names don't matter; try to give them briefly descriptive names.
+This `example_tests` folder comprises a *test suite*. When you run Blackbox Tester, you point it at a test suite directory, and all the
+tests in that directory are run. The directory names don't matter; try to give them briefly descriptive names.
 
 For example, to run the `example_tests` suite, you run the command:
 
@@ -71,18 +75,21 @@ The output summarises the success or failure of every test in the suite:
     Done.
 ```
 
-Test 2 has deliberately been set up to demonstrate failure. When a test fails because the `input` folder contents don't match the `output` folder contents, Blackbox Tester tells you about any problems it found and leaves a directory named `working` behind to help you debug the issue. To see the differences, run your favourite diff tool on the directories `output/` and `working/` inside the failed test.
+Test 2 has deliberately been set up to demonstrate failure. When a test fails because the `input` folder contents don't match the `output`
+folder contents, Blackbox Tester tells you about any problems it found and leaves a directory named `working` behind to help you debug the
+issue. To see the differences, run your favourite diff tool on the directories `output/` and `working/` inside the failed test.
 
 If you do that in this case, you'll see a file `orphan_in_input.txt` in the `input` folder that isn't present in the `output` folder.
 
-Once you've corrected your tests (or fixed a bug in the tool you're testing!), and want to try the tests again, you might think to remove the `working` folder(s). But there's no need to do this yourself: at the start of a test suite run, Blackbox Tester automatically removes any `working` folders. If you want to clean these folders up without running the test suite again, run `python3 blackbox_tester.py --clean`.
+Once you've corrected your tests (or fixed a bug in the tool you're testing!), and want to try the tests again, you might think to remove
+the `working` folder(s). But there's no need to do this yourself: at the start of a test suite run, Blackbox Tester automatically removes
+any `working` folders. If you want to clean these folders up without running the test suite again, run `python3 blackbox_tester.py --clean`.
 
 # Testing stdout output for a command
 
 Blackbox Tester can also check the standard output produced by a command.
 
 To do this, place the expected output in a text file `stdout.txt`. Here's a layout of a folder containing a standard out test:
-
 
 ```
     some_test/
@@ -95,13 +102,15 @@ To do this, place the expected output in a text file `stdout.txt`. Here's a layo
       config.yml      
 ```
 
-Should the `stdout.txt` contents not match what the command actually output, a file is saved that shows the actual output: `stdout_working.txt`. You shoould diff this against your `stdout.txt` file to see any differences.
+Should the `stdout.txt` contents not match what the command actually output, a file is saved that shows the actual
+output: `stdout_working.txt`. You shoould diff this against your `stdout.txt` file to see any differences.
 
 Note that the `--clean` command also removes any `stdout_working.txt` files it finds.
 
 # Recording standard out
 
-If you are confident that the tool you are testing is currently in a good working state, you can ask Blackbox Tester to record the standard out produced by all your tests into `stdout.txt` files for future verification:
+If you are confident that the tool you are testing is currently in a good working state, you can ask Blackbox Tester to record the standard
+out produced by all your tests into `stdout.txt` files for future verification:
 
 ```
     python3 blackbox_tester.py my_test_suite --record-stdout
@@ -109,6 +118,9 @@ If you are confident that the tool you are testing is currently in a good workin
 
 # Checking in empty input/output directories using Git
 
-You might want to use an empty `input` or `output` folder for a test. This is fine as far as Blackbox Tester is concerned, but if you're using git for source control, you might have a problem because it doesn't 'see' empty folders. To get around this, put an empty file `.blackbox_ignore_this_file` inside any empty folder. It's a file name that Blackbox Tester ignores, but it will allow git to see the folder.
+You might want to use an empty `input` or `output` folder for a test. This is fine as far as Blackbox Tester is concerned, but if you're
+using git for source control, you might have a problem because it doesn't 'see' empty folders. To get around this, put an empty
+file `.blackbox_ignore_this_file` inside any empty folder. It's a file name that Blackbox Tester ignores, but it will allow git to see the
+folder.
 
 
