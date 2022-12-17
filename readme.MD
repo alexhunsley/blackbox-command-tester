@@ -58,17 +58,14 @@ The output summarises the success or failure of every test in the suite:
     Cleaning artifacts from test suite dir: example_tests
     
     Running test suite in dir: example_tests
+        
+    Test 0 SUCCESS: "test if cat command creates a file, leaving an existing file alone" in dir "0_cat_command_creates_a_file"
     
+    Test 1 SUCCESS: "test if echo emits to standard out" in dir "1_cat_output_to_stdout"
     
-    Test 0 SUCCESS:  "test if cat command creates a file, leaving an existing file alone" in dir "example_tests/0_cat_command_creates_a_file"
-    
-    
-    Test 1 SUCCESS:  "test if echo emits to standard out" in dir "example_tests/1_cat_output_to_stdout"
-    
-    
-    Test 2 FAILED:  "test if cat command creates a file, leaving an existing file alone, deliberate diffs" in dir "example_tests/2_a_faulty_test_that_demonstrates_failure"
+    Test 2 FAILED: "test if cat command creates a file, leaving an existing file alone, deliberate diffs" in dir "2_a_faulty_test_that_demonstrates_failure"
+       * standard out didn't match the output given in stdout.txt.
        Between working and output, found orphan files/folders: ['orphan_in_input.txt']
-    
     
     1 failures in 3 tests.
     
