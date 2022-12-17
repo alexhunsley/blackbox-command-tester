@@ -22,6 +22,10 @@
 # stdin using subprocess:
 #  https://stackoverflow.com/a/8475367
 #
+# The issue with self-test: the auto-call to clean finds legit working/ folders *inside the input/output dirs in the test* that we don't
+# want to delete, and deletes those. Solution: Limit level we delete working/ folders to.
+#
+#
 
 import shutil
 import subprocess
@@ -312,19 +316,38 @@ def run_all_tests(root_dir, record=False, report_failure_only=False):
     print(f"\n{failed_test_count} failures in {test_index} tests.\n")
 
 
-# removes diagnostic files from test suite, i.e. working/ dirs and stdout_working.txt files
+# removes diagnostic files from test suite, i.e. working/ dirs and stdout_working.txt files.
+# this function doesn't remove such files that are deeper than 2 dirs in the hierarchy,
+# as they would be part of test case data, and not result of direct running of a test case (v meta).
 def clean_test_suite(root_dir):
     for root, dirs, files in os.walk(root_dir, topdown=True):
 
+        num_path_components = len(root.split('/'))
+
         if STDOUT_WORKING_COPY_FILE in files:
-            file_to_remove = os.path.join(root, STDOUT_WORKING_COPY_FILE)
-            os.remove(file_to_remove)
+            print(f"stdout.txt:  num_path_components = {num_path_components}")
+            if num_path_components == 2:
+                print(f"REMOVING  stdout_working.txt   root={root} dirs={dirs} files={files}")
+                file_to_remove = os.path.join(root, STDOUT_WORKING_COPY_FILE)
+                os.remove(file_to_remove)
+            else:
+                print(f"** Vetoed removal of stdout_working.txt, because level != 2, in: {root}")
 
         if WORKING_DIR in dirs:
-            dir_to_remove = os.path.join(root, WORKING_DIR)
-            # print(f"Deleted dir: {dir_to_remove}")
-            shutil.rmtree(dir_to_remove)
 
+            print(f"working/:  num_path_components = {num_path_components}")
+            if num_path_components == 2:
+                # working/ dir at correct level to be legit working/ dir for this test,
+                # and not part of the tests!
+                print(f"REMOVING DIR   root={root} dirs={dirs} files={files}")
+                dir_to_remove = os.path.join(root, WORKING_DIR)
+                print(f"  REMOVING DIR  dirToRemove: {dir_to_remove}")
+                # print(f"Deleted dir: {dir_to_remove}")
+                shutil.rmtree(dir_to_remove)
+            else:
+                print(f"** Vetoed removal of working dir, because level != 2, in: {root}")
+
+# add to self test: the stdout not matching. So we know the clean isn't going too deep!
 
 @click.command(no_args_is_help=False)
 @click.argument('test_suite_dir')
