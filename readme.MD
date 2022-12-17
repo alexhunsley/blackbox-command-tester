@@ -35,7 +35,7 @@ Note that `test_description` is cosmetic only, but is worth specifying -- it wil
 
 # Blackbox Tester runs a suite of tests
 
-If you look inside the directory `example_tests`, you'll see three folders, specifying three tests:
+If you look inside the directory `bbtests_examples`, you'll see three folders, specifying three tests:
 
 ```
     0_cat_command_creates_a_file
@@ -43,21 +43,22 @@ If you look inside the directory `example_tests`, you'll see three folders, spec
     2_a_faulty_test_that_demonstrates_failure
 ```
 
-This `example_tests` folder comprises a *test suite*. When you run Blackbox Tester, you point it at a test suite directory, and all the
-tests in that directory are run. The directory names don't matter; try to give them briefly descriptive names.
+This `bbtests_examples` folder comprises a *test suite*. When you run Blackbox Tester, you point it at a test suite directory, and all the
+tests in that directory are run. The directory names don't matter; try to give them briefly descriptive names. It *is* recommended to prefix
+your test suite directories with `bbtests_` in order to make it obvious which is a test suite.
 
-For example, to run the `example_tests` suite, you run the command:
+For example, to run the `bbtests_examples` suite, you run the command:
 
 ```
-    python3 blackbox_tester.py example_tests
+    python3 blackbox_tester.py bbtests_examples
 ```
 
 The output summarises the success or failure of every test in the suite:
 
 ```
-    Cleaning artifacts from test suite dir: example_tests
+    Cleaning artifacts from test suite dir: bbtests_examples
     
-    Running test suite in dir: example_tests
+    Running test suite in dir: bbtests_examples
         
     Test 0 SUCCESS: "test if cat command creates a file, leaving an existing file alone" in dir "0_cat_command_creates_a_file"
     
@@ -80,7 +81,7 @@ If you do that in this case, you'll see a file `orphan_in_input.txt` in the `inp
 
 Once you've corrected your tests (or fixed a bug in the tool you're testing!), and want to try the tests again, you might think to remove
 the `working` folder(s). But there's no need to do this yourself: at the start of a test suite run, Blackbox Tester automatically removes
-any `working` folders. If you want to clean these folders up without running the test suite again, run `python3 blackbox_tester.py --clean`.
+any `working` folders at the top level. If you want to clean these folders up without running the test suite again, run `python3 blackbox_tester.py --clean`.
 
 # Testing standard output for a command
 
