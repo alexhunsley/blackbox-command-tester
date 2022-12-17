@@ -1,0 +1,2 @@
+Cleaning artifacts from test suite dir: example_tests
+

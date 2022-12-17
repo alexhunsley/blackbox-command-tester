@@ -1,0 +1,2 @@
+test_description: 'test if cat command creates a file, leaving an existing file alone, deliberate diffs'
+command: 'echo {test_var} | cat > file.txt'
