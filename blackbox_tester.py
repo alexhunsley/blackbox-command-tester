@@ -323,19 +323,23 @@ def clean_test_suite(root_dir):
     for root, dirs, files in os.walk(root_dir, topdown=True):
 
         num_path_components = len(root.split('/'))
+        # print(f"num_comps = {num_path_components} root={root} dirs={dirs} files={files}")
 
-        if num_path_components != 2:
+        # NB: if you return from os.walk, it seems to quit the entire walk!
+        # So we must not return if num_path_components is 1
+        if num_path_components > 2:
+            return
+        elif num_path_components == 2:
             # Only target files/dir names at this level are legitimately things to delete for these tests.
             # Any deeper instances are part of test input or output!
-            return
 
-        if STDOUT_WORKING_COPY_FILE in files:
-            file_to_remove = os.path.join(root, STDOUT_WORKING_COPY_FILE)
-            os.remove(file_to_remove)
+            if STDOUT_WORKING_COPY_FILE in files:
+                file_to_remove = os.path.join(root, STDOUT_WORKING_COPY_FILE)
+                os.remove(file_to_remove)
 
-        if WORKING_DIR in dirs:
-            dir_to_remove = os.path.join(root, WORKING_DIR)
-            shutil.rmtree(dir_to_remove)
+            if WORKING_DIR in dirs:
+                dir_to_remove = os.path.join(root, WORKING_DIR)
+                shutil.rmtree(dir_to_remove)
 
 
 @click.command(no_args_is_help=False)
