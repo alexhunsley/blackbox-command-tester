@@ -1,0 +1,2 @@
+test_description: 'tests the example_tests'
+command: 'python3 ../../../blackbox_tester.py example_tests'
