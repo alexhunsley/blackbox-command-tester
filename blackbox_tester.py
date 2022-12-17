@@ -193,7 +193,7 @@ def run_command_and_compare(global_config, target_folder, test_index, expected_s
             else:
                 if response != expected_stdout_content:
                     differences.append(f"* standard out didn't match the output given in stdout.txt.")
-                    print(f"Len found: {len(response)}, len expected: {len(expected_stdout_content)}")
+                    # print(f"Len found: {len(response)}, len expected: {len(expected_stdout_content)}")
                     # differences.append(f"* standard out didn't match the output given in stdout.txt.
                     # Expected:\n===8<===\n{expected_stdout_content}\n=== but I got:\n{response}\n===8<===")
                     stdout_mismatch_found = True
@@ -223,7 +223,7 @@ def run_command_and_compare(global_config, target_folder, test_index, expected_s
         if summary_csv:
             output = f'{test_index},{result},"{test_description}","{os.path.basename(target_folder)}",{raw_command}'
         else:
-            output = f"Test {test_index} {result}: \"{test_description}\" in dir \"{os.path.basename(target_folder)}\""
+            output = f"\nTest {test_index} {result}: \"{test_description}\" in dir \"{os.path.basename(target_folder)}\""
 
         if test_failed:
             pr_red(output)
@@ -250,7 +250,7 @@ def run_command_and_compare(global_config, target_folder, test_index, expected_s
     return True, test_succeeded
 
 
-def run_all_tests(root_dir, record=False, report_failure_only=False):
+def run_all_tests(root_dir, record=False, report_failure_only=False, summary_csv=False):
     if not os.path.exists(root_dir):
         print(f"Couldn't find test suite directory: {root_dir}.\nExiting.\n\n")
         sys.exit(1)
@@ -295,7 +295,7 @@ def run_all_tests(root_dir, record=False, report_failure_only=False):
             expected_stdout_filename = os.path.join("..", STD_OUT_EXPECTED_CONTENT_FILENAME)
 
             (found_test_suite, test_status) = run_command_and_compare(global_config, target_dir, test_index,
-                                                                      expected_stdout_filename, record, report_failure_only, summary_csv=True)
+                                                                      expected_stdout_filename, record, report_failure_only, summary_csv=summary_csv)
 
             if not found_test_suite:
                 print(
@@ -337,7 +337,6 @@ def clean_test_suite(root_dir):
             dir_to_remove = os.path.join(root, WORKING_DIR)
             shutil.rmtree(dir_to_remove)
 
-# add to self test: the stdout not matching. So we know the clean isn't going too deep!
 
 @click.command(no_args_is_help=False)
 @click.argument('test_suite_dir')
