@@ -2,10 +2,10 @@
 
 This is a proof-of-concept.
 
-It's a tool for verifying input files versus output files for a command line tool. Typically you'd use it to test a command line tool you'd
-written, to ensure that its functionality has not changed.
+It's a tool for verifying standard output and/or file processing for a command line tool. Typically you'd use it to verify the behaviour of a tool you'd
+written.
 
-As a very simple example, image you want to verify that the `cat` command is able to write to a file (and also that it will not change a
+As a very simple example, suppose you want to verify that the `cat` command is able to write to a file (and also that it will not change a
 file with a different name that already exists). The directory `examples_tests/0_cat_command_creates_a_file` demonstrates the setup to do
 this:
 
