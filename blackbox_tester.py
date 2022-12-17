@@ -324,28 +324,18 @@ def clean_test_suite(root_dir):
 
         num_path_components = len(root.split('/'))
 
+        if num_path_components != 2:
+            # Only target files/dir names at this level are legitimately things to delete for these tests.
+            # Any deeper instances are part of test input or output!
+            return
+
         if STDOUT_WORKING_COPY_FILE in files:
-            print(f"stdout.txt:  num_path_components = {num_path_components}")
-            if num_path_components == 2:
-                print(f"REMOVING  stdout_working.txt   root={root} dirs={dirs} files={files}")
-                file_to_remove = os.path.join(root, STDOUT_WORKING_COPY_FILE)
-                os.remove(file_to_remove)
-            else:
-                print(f"** Vetoed removal of stdout_working.txt, because level != 2, in: {root}")
+            file_to_remove = os.path.join(root, STDOUT_WORKING_COPY_FILE)
+            os.remove(file_to_remove)
 
         if WORKING_DIR in dirs:
-
-            print(f"working/:  num_path_components = {num_path_components}")
-            if num_path_components == 2:
-                # working/ dir at correct level to be legit working/ dir for this test,
-                # and not part of the tests!
-                print(f"REMOVING DIR   root={root} dirs={dirs} files={files}")
-                dir_to_remove = os.path.join(root, WORKING_DIR)
-                print(f"  REMOVING DIR  dirToRemove: {dir_to_remove}")
-                # print(f"Deleted dir: {dir_to_remove}")
-                shutil.rmtree(dir_to_remove)
-            else:
-                print(f"** Vetoed removal of working dir, because level != 2, in: {root}")
+            dir_to_remove = os.path.join(root, WORKING_DIR)
+            shutil.rmtree(dir_to_remove)
 
 # add to self test: the stdout not matching. So we know the clean isn't going too deep!
 
