@@ -38,6 +38,8 @@ from dir_comparison.fake_file_system import *
 
 YAML_CONFIG_FILE = "config.yaml"
 YAML_GLOBAL_CONFIG_FILE = "global.yaml"
+# definitions key for map in global.yaml for possible replacement text in config.yaml files
+DEFINITIONS_KEY = 'definitions'
 
 INPUT_DIR = "input"
 EXPECTED_OUTPUT_DIR = "output"
@@ -114,6 +116,7 @@ def trim_lines_until_after_line_containing(lines_as_bytes, text_match):
     # print(f"trim lines: returning {return_lines}")
     return all_lines.encode(ENCODING)
 
+
 # checks that config.yaml, input/ and output/ exist.
 def validate_folder_structure(single_test_target_folder):
     input_folder_path = os.path.join(single_test_target_folder, INPUT_DIR)
@@ -141,7 +144,7 @@ def run_command_and_compare(global_config, target_folder, test_index, expected_s
     if not validate_folder_structure(target_folder):
         return False, False
 
-    vars = global_config.get('variables', {})
+    definitions = global_config.get(DEFINITIONS_KEY, {})
 
     config_file = os.path.join(target_folder, YAML_CONFIG_FILE)
 
@@ -172,9 +175,9 @@ def run_command_and_compare(global_config, target_folder, test_index, expected_s
 
     # copy input to working folder
 
-    command, raw_command = get_yaml_value_raw(config, global_config, "command", vars)
+    command, raw_command = get_yaml_value_raw(config, global_config, "command", definitions)
 
-    input_strings = get_yaml_value(config, global_config, "text_input", vars)
+    input_strings = get_yaml_value(config, global_config, "text_input", definitions)
 
     if input_strings is not None:
         input_strings = '%s\n' % '\n'.join(input_strings)
@@ -189,9 +192,9 @@ def run_command_and_compare(global_config, target_folder, test_index, expected_s
 
     completed_process = subprocess.run(command, input=input_strings_binary, shell=True, capture_output=True)
 
-    expected_return_code = int(get_yaml_value(config, global_config, "expected_return_code", vars, default_value=0))
+    expected_return_code = int(get_yaml_value(config, global_config, "expected_return_code", definitions, default_value=0))
 
-    ignore_stdout_until_after_line_containing = get_yaml_value(config, global_config, "ignore_stdout_until_after_line_containing", vars)
+    ignore_stdout_until_after_line_containing = get_yaml_value(config, global_config, "ignore_stdout_until_after_line_containing", definitions)
 
     # print(f"before trim len: {len(stdout_expected)} after trim: {len(expected_stdout_content)} trim to {ignore_stdout_until_after_line_containing}")
     #
@@ -237,7 +240,7 @@ def run_command_and_compare(global_config, target_folder, test_index, expected_s
 
     differences = stdout_differences + differences
 
-    test_description = get_yaml_value(config, global_config, 'test_description', vars)
+    test_description = get_yaml_value(config, global_config, 'test_description', definitions)
 
     test_failed = (len(differences) > 0)
 
@@ -301,11 +304,11 @@ def run_all_tests(root_dir, record=False, report_failure_only=False, summary_csv
 
     # remap all vars to {var} inm the global config
     if global_config:
-        vars = global_config.get('variables', {})
+        vars = global_config.get(DEFINITIONS_KEY, {})
 
         vars = dict((f"{{{key}}}", val) for key, val in vars.items())
 
-        global_config['variables'] = vars
+        global_config[DEFINITIONS_KEY] = vars
 
     for root, dirs, files in os.walk(root_dir, topdown=True):
 
