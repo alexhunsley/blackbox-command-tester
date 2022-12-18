@@ -51,9 +51,9 @@ Note that `test_description` is cosmetic only, but is worth specifying -- it wil
 If you look inside the directory `bbtests_examples`, you'll see three directories, specifying three tests:
 
 ```
-    0_cat_command_creates_a_file
-    1_cat_output_to_stdout
-    2_a_faulty_test_that_demonstrates_failure
+    0_cat_command_creates_a_file/
+    1_cat_output_to_stdout/
+    2_a_faulty_test_that_demonstrates_failure/
 ```
 
 This `bbtests_examples` directory comprises a *test suite*. When you run Blackbox Tester, you point it at a test suite directory, and all the
@@ -121,7 +121,9 @@ Note that the `--clean` command also removes any `stdout_working.txt` files it f
 # Record mode
 
 If you are confident that the tool you are testing is currently in a good working state, you can ask Blackbox Tester to create `output/`
-and `stdout.txt` based on what your tool actually produces. To do this, run the tool with the `--record` flag:
+and `stdout.txt` based on what your tool actually produces.
+
+To do such a recording, run the tool with the `--record` flag:
 
 ```
     python3 blackbox_tester.py my_test_suite --record
@@ -134,3 +136,19 @@ using git for source control, you might have a problem because it doesn't 'see' 
 file `.blackbox_ignore_this_file` inside any empty directory. It's a file name that Blackbox Tester ignores, but it will allow git to see the
 directory.
 
+# Disabling certain tests in a test suite
+
+You might want to disable (but not delete) some tests in a test suite. To help you with this, `blackbox_tester` ignores any folder
+named `ignore_contents` in a test suite.
+
+Taking the `bbtests_examples` test suite as an example, we could disable tests 1 and 2 by moving them into a subfolder with that special
+name:
+
+```
+    0_cat_command_creates_a_file/
+    ignore_contents/
+        1_cat_output_to_stdout/
+        2_a_faulty_test_that_demonstrates_failure/
+```
+
+`blackbox_tester` also ignores any `.git` directories it finds in a test suite.
