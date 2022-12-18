@@ -1,2 +1,2 @@
-Cleaning artifacts from test suite dir: example_tests
+Cleaning artifacts from test suite dir: bbtests_clean_function
 

@@ -1,2 +1,2 @@
 test_description: 'tests --clean on the example_tests. The working/ folders inside input/ and output/ should not be deleted, but top level ones should be.'
-command: 'python3 ../../../blackbox_tester.py example_tests --clean'
+command: 'python3 ../../../blackbox_tester.py bbtests_clean_function --clean'
