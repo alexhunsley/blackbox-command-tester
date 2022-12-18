@@ -1,0 +1,2 @@
+test_description: "Echo command doesn't create any files"
+command: 'echo Hello'

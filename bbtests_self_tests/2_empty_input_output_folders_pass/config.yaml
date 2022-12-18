@@ -1,0 +1,2 @@
+test_description: 'Test that has empty input and output folders should pass, and no stdout.txt is required'
+command: 'python3 ../../../blackbox_tester.py bbtests_empty_input_output_folders'
