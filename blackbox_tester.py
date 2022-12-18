@@ -130,6 +130,7 @@ def run_command_and_compare(global_config, target_folder, test_index, expected_s
         return False, False
 
     differences = []
+    stdout_differences = []
 
     os.chdir(target_folder)
 
@@ -192,7 +193,7 @@ def run_command_and_compare(global_config, target_folder, test_index, expected_s
                     stdout_file.write(response)
             else:
                 if response != expected_stdout_content:
-                    differences.append(f"* standard out didn't match the output given in stdout.txt.")
+                    stdout_differences.append(f"* standard out didn't match the output given in stdout.txt.")
                     # print(f"Len found: {len(response)}, len expected: {len(expected_stdout_content)}")
                     # differences.append(f"* standard out didn't match the output given in stdout.txt.
                     # Expected:\n===8<===\n{expected_stdout_content}\n=== but I got:\n{response}\n===8<===")
@@ -209,13 +210,20 @@ def run_command_and_compare(global_config, target_folder, test_index, expected_s
             compare_folders(WORKING_DIR, EXPECTED_OUTPUT_DIR, differences, exit_on_first_difference=False,
                             section_size=1024 * 64, ignore_files=['.DS_Store', '.blackbox_ignore_this_file'])
 
+    file_tree_diffs_found = True if len(differences) else False
+
+    differences = stdout_differences + differences
+
     test_description = get_yaml_value(config, global_config, 'test_description', vars)
 
     test_failed = (len(differences) > 0)
 
-    if not test_failed:
-        # we want to keep working dir for comparisons when tests fail.
+    if not file_tree_diffs_found:
+        # print(f" =========== no stdout difference, so deleting dir {WORKING_DIR}")
+        # we want to keep working dir for comparisons when input/output comparison fails.
         shutil.rmtree(WORKING_DIR, ignore_errors=True)
+    # else:
+    #     print(f" =========== found stdout difference, so not deleting dir {WORKING_DIR}, stdout diff = {stdout_differences}")
 
     result = f"FAILED" if test_failed else f"SUCCESS"
 

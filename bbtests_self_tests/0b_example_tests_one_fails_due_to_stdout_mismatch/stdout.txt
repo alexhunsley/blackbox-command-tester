@@ -9,8 +9,7 @@ Test 0 SUCCESS: "test if cat command creates a file, leaving an existing file al
 Test 1 SUCCESS: "test if echo emits to standard out" in dir "1_cat_output_to_stdout"
 [91m
 Test 2 FAILED: "test if cat command creates a file, leaving an existing file alone, deliberate diffs" in dir "2_a_faulty_test_that_demonstrates_failure"[00m
-[93m   * standard out didn't match the output given in stdout.txt.
-   Between working and output, found orphan files/folders: ['orphan_in_input.txt'][00m
+[93m   * standard out didn't match the output given in stdout.txt.[00m
 
 1 failures in 3 tests.
 

@@ -1,0 +1,2 @@
+test_description: 'test if echo emits to standard out'
+command: 'echo Hello "everyone out there.\nAnd more!"'

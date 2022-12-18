@@ -1,0 +1,2 @@
+test_description: 'test that stdout mismatch causes failure, creates stdout.txt and does not create working/ folder'
+command: 'python3 ../../../blackbox_tester.py bbtests_examples'
