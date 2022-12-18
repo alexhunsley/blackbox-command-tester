@@ -28,6 +28,7 @@
 #
 #
 
+import sys
 import shutil
 import subprocess
 
@@ -35,7 +36,7 @@ import click
 import yaml
 
 from dir_comparison.dir_comparison import *
-from dir_comparison.fake_file_system import *
+
 
 YAML_CONFIG_FILE = "config.yaml"
 YAML_GLOBAL_CONFIG_FILE = "global.yaml"

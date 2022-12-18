@@ -1,11 +1,6 @@
-from pyfakefs.fake_filesystem_unittest import Patcher
-from dir_comparison import fake_file_system
-# from .dir_comparison import fake_dirs_same_contents
-
 import os
 import hashlib
 import io
-from pprint import pprint
 import pytest
 
 
