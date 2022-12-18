@@ -1,0 +1,18 @@
+Cleaning artifacts from test suite dir: bbtests_examples
+
+Running test suite in dir: bbtests_examples
+
+
+
+Test 0 SUCCESS: "test if cat command creates a file, leaving an existing file alone" in dir "0_cat_command_creates_a_file"
+
+Test 1 SUCCESS: "test if echo emits to standard out" in dir "1_cat_output_to_stdout"
+[91m
+Test 2 FAILED: "test if cat command creates a file, leaving an existing file alone, deliberate diffs" in dir "2_a_faulty_test_that_demonstrates_failure"[00m
+[93m   * standard out didn't match the output given in stdout.txt.[00m
+
+1 failures in 3 tests.
+
+Done.
+
+

@@ -1,0 +1,2 @@
+test_description: 'test that file structure mismatch causes failure and no working artifacts due to flag create_working_artifacts = n'
+command: 'python3 ../../../blackbox_tester.py bbtests_examples'
