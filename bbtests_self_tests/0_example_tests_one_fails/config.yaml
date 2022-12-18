@@ -1,2 +1,2 @@
-test_description: 'tests the blackbox_tester tool on the example_tests data'
+test_description: 'tests the blackbox_tester tool on the example_tests data, including test 2 which fails'
 command: 'python3 ../../../blackbox_tester.py example_tests'
