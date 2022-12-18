@@ -12,10 +12,11 @@
 # [x] add train mode -- records stout.txt and output/ from the tool run
 # [x] add 'show only failures' param
 # [ ] optional translation of 'first/last checksum' diffs to just checksum diff - consumer of folder compare doesn't usually care
-# [ ] remove the 'variables' dict, let anything at global.yaml level be a variable for {var_name}.
+# [ ] ? remove the 'variables' dict, let anything at global.yaml level be a variable for {var_name}.
 # [ ] take target tests in suite as a param -- for running only some of them
 # [ ] (maybe) do file timestamp comparison input v output
 # [ ] make existing CSV output option a param
+# [ ] require any test dir in a test suite to begein 'test_'. Sensible.
 #
 #
 #
