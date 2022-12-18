@@ -114,16 +114,39 @@ def trim_lines_until_after_line_containing(lines_as_bytes, text_match):
     # print(f"trim lines: returning {return_lines}")
     return all_lines.encode(ENCODING)
 
+# checks that config.yaml, input/ and output/ exist.
+def validate_folder_structure(single_test_target_folder):
+    input_folder_path = os.path.join(single_test_target_folder, INPUT_DIR)
+    if not os.path.exists(input_folder_path):
+        print(f"Error: Couldn't find the input/ folder for a test at {single_test_target_folder}")
+        return False
+
+    output_folder_path = os.path.join(single_test_target_folder, EXPECTED_OUTPUT_DIR)
+    if not os.path.exists(output_folder_path):
+        print(f"Error: Couldn't find the output/ folder for a test at {single_test_target_folder}")
+        return False
+
+    config_file_path = os.path.join(single_test_target_folder, YAML_CONFIG_FILE)
+    if not os.path.exists(config_file_path):
+        print(f"Error: Couldn't find config.yaml for a test at {single_test_target_folder}")
+        return False
+
+    return True
+
 
 # run single in-out comparison test in this folder. Returns (bool, bool) for (problem was found trying to run tests
 # for this test suite dir, stdout problem status or comparison status (i.e. success/fail))
 def run_command_and_compare(global_config, target_folder, test_index, expected_stdout_filename=None, record=False, report_failure_only=False, summary_csv=False):
+
+    if not validate_folder_structure(target_folder):
+        return False, False
+
     vars = global_config.get('variables', {})
 
     config_file = os.path.join(target_folder, YAML_CONFIG_FILE)
 
     try:
-        with open(f'{target_folder}/config.yaml', 'r') as file:
+        with open(config_file, 'r') as file:
             config = yaml.safe_load(file)
     except IOError as E:
         print(f'\nNo config.yaml found in {target_folder}')
@@ -302,6 +325,7 @@ def run_all_tests(root_dir, record=False, report_failure_only=False, summary_csv
             # expected_stdout_filename = os.path.join(target_dir, STD_OUT_EXPECTED_CONTENT_FILENAME)
             expected_stdout_filename = os.path.join("..", STD_OUT_EXPECTED_CONTENT_FILENAME)
 
+            # print(f"running test in target_dir = {target_dir}")
             (found_test_suite, test_status) = run_command_and_compare(global_config, target_dir, test_index,
                                                                       expected_stdout_filename, record, report_failure_only, summary_csv=summary_csv)
 
