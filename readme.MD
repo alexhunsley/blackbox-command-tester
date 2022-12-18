@@ -7,13 +7,14 @@ written.
 
 # Why not use Unit Tests?
 
-Unit testing is great. If approprite, use it!
+Unit testing is great. If appropriate, use it!
 
 This tool is for when unit testing might not quite fit your situation. For example:
 
 * You can't access or change the source of the tool you want to test
-* You want to aggressively refactor an existing tool without wasting time writing unit tests that will soon become unusable due to the refactoring
+* You want to aggressively refactor an existing tool without spending time writing unit tests that will soon become unusable due to the refactoring
 * You already have unit tests, but also want to test the integrated whole
+* You're feeling a bit lazy and think that some blackbox input-output tests are quicker to write than unit tests (caveat emptor)
 
 # Example
 
