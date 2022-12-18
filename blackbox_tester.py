@@ -152,8 +152,10 @@ def run_command_and_compare(global_config, target_folder, test_index, expected_s
         with open(config_file, 'r') as file:
             config = yaml.safe_load(file)
     except IOError as E:
-        print(f'\nNo config.yaml found in {target_folder}')
+        print(f'\nCould not load config.yaml in {target_folder}')
         return False, False
+
+    # print(f"config: {config}")
 
     differences = []
     stdout_differences = []
@@ -178,6 +180,11 @@ def run_command_and_compare(global_config, target_folder, test_index, expected_s
     command, raw_command = get_yaml_value_raw(config, global_config, "command", definitions)
 
     input_strings = get_yaml_value(config, global_config, "text_input", definitions)
+
+    create_working_artifacts = True
+    if create_working_artifacts_str := get_yaml_value(config, global_config, "create_working_artifacts", definitions):
+        if create_working_artifacts_str.lower() == 'n':
+            create_working_artifacts = False
 
     if input_strings is not None:
         input_strings = '%s\n' % '\n'.join(input_strings)
@@ -244,7 +251,7 @@ def run_command_and_compare(global_config, target_folder, test_index, expected_s
 
     test_failed = (len(differences) > 0)
 
-    if not file_tree_diffs_found:
+    if not file_tree_diffs_found or not create_working_artifacts:
         # print(f" =========== no stdout difference, so deleting dir {WORKING_DIR}")
         # we want to keep working dir for comparisons when input/output comparison fails.
         shutil.rmtree(WORKING_DIR, ignore_errors=True)
@@ -269,7 +276,7 @@ def run_command_and_compare(global_config, target_folder, test_index, expected_s
             indent_newline = f"\n{indent}"
             pr_yellow("%s%s" % (indent, indent_newline.join(differences)))
 
-    if stdout_mismatch_found:
+    if stdout_mismatch_found and create_working_artifacts:
 
         with open(STDOUT_WORKING_COPY_FILE, 'wb') as stdout_found:
             # print(f"Writing len {len(response)} to file because not matched")
