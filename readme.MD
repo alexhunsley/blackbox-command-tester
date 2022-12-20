@@ -2,7 +2,7 @@
 
 This is a proof-of-concept.
 
-It's a tool for verifying a command-line tool in the following ways:
+It's a tool for verifying a `target` command-line tool in the following ways:
 
 * checking for expected standard output
 * checking for expected state of a file tree after processing
@@ -23,7 +23,7 @@ This tool is for when unit testing might not quite fit your situation. For examp
 
 # Example
 
-As a contrived example, suppose you want to verify that the `cat` command is able to write to a file (and also that it will not change a
+As a contrived example, suppose you want to verify that the target command `cat` is able to write to a file (and also that it will not change a
 file with a different name that already exists). The directory `bbtests_examples/0_cat_command_creates_a_file` demonstrates the setup to do
 this:
 
@@ -39,10 +39,10 @@ this:
 
 This entire structure describes a single test.
 
-BBT works by running a command (specified in `config.yml`) inside a _copy_ of the `input` directory. It then verifies that
+BBT works by running the target command (specified in `config.yml`, in this case `cat`) inside a _copy_ of the `input` directory. It then verifies that
 the resulting contents of that directory matches what is in the `output` directory.
 
-The `config.yml` file specifies what command to run:
+Here's a simple `config.yml` that shows the target command specification:
 
 ```
     test_description: 'test if cat command creates a file, leaving an existing file alone'
@@ -61,7 +61,7 @@ If you look inside the directory `bbtests_examples`, you'll see three directorie
     2_a_faulty_test_that_demonstrates_failure/
 ```
 
-This `bbtests_examples` directory comprises a *test suite*. When you run Blackbox Tester, you point it at a test suite directory, and all the
+This `bbtests_examples` directory comprises a *test suite*. When you run BBT, you point it at a test suite directory, and all the
 tests in that directory are run. The directory names don't matter; try to give them briefly descriptive names. It *is* recommended to prefix
 your main test suite directory with `bbtests_` in order to make it obvious what is a test suite.
 
@@ -145,6 +145,17 @@ To do such a recording, run the tool with the `--record` flag:
     python3 blackbox_tester.py my_test_suite --record
 ```
 
+# Global config
+
+# Other parameters
+
+| YAML config param                         | type   |                                Description                                 |
+|-------------------------------------------|:-------|:--------------------------------------------------------------------------:|
+| expected_return_code                      | String |         Expected return code from target command. Defaults to '0'.         |
+| always_delete_working_artifacts           | String | If 'y', no stdout_working.txt or working/ is created, even if a test fails |
+| ignore_stdout_until_after_line_containing | String |     All stdout up to and including a line containing match is ignored      |
+
+
 # Checking in empty input/output directories using Git
 
 You might want to create an empty `input` or `output` directory for a test. This is fine as far as Blackbox Tester is concerned, but if you're
@@ -154,11 +165,10 @@ directory.
 
 # Disabling certain tests in a test suite
 
-You might want to disable (but not delete) some tests in a test suite. To help you with this, `blackbox_tester` ignores any folder
+You might want to disable (but not delete) some tests in a test suite. To help you with this, BBT ignores any folder
 named `ignore_contents` in a test suite.
 
-Taking the `bbtests_examples` test suite as an example, we could disable tests 1 and 2 by moving them into a subfolder with that special
-name:
+Taking the `bbtests_examples` test suite as an example, we could disable tests 1 and 2 by moving them into a subfolder with that name:
 
 ```
     0_cat_command_creates_a_file/
@@ -167,4 +177,4 @@ name:
         2_a_faulty_test_that_demonstrates_failure/
 ```
 
-`blackbox_tester` also ignores any `.git` directories it finds in a test suite.
+BBT also ignores any `.git` directories it finds in a test suite.
