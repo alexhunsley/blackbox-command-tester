@@ -126,9 +126,13 @@ def validate_folder_structure(single_test_target_folder):
 
     num_things_to_validate = 0
 
-    input_folder_path = os.path.join(single_test_target_folder, INPUT_DIR)
+    # target_folder_abspath = os.path.abspath(single_test_target_folder)
+    target_folder_abspath = single_test_target_folder
+
+    input_folder_path = os.path.join(target_folder_abspath, INPUT_DIR)
     if not os.path.exists(input_folder_path):
-        errors.append(f"Error: Couldn't find the input/ folder for a test at {single_test_target_folder}")
+        errors.append(f"Error: Couldn't find the input/ folder for a test at {input_folder_path}")
+        # errors.append(f"Error: Couldn't find the input/ folder for a test at {input_folder_path}, currdir = {os.getcwd()}")
 
     output_folder_path = os.path.join(single_test_target_folder, EXPECTED_OUTPUT_DIR)
     if os.path.exists(output_folder_path):
@@ -196,10 +200,11 @@ def run_command_and_compare(global_config, target_folder, test_index, expected_s
 
     input_strings = get_yaml_value(config, global_config, "text_input", definitions)
 
-    do_not_keep_working_artifacts_if_differences_found = True
-    if create_working_artifacts_str := get_yaml_value(config, global_config, "create_working_artifacts", definitions):
-        if create_working_artifacts_str.lower() == 'n':
-            do_not_keep_working_artifacts_if_differences_found = False
+    # always del working artificts, even if differences found
+    always_delete_working_artifacts = False
+    if always_delete_working_artifacts_str := get_yaml_value(config, global_config, "always_delete_working_artifacts", definitions):
+        if always_delete_working_artifacts_str.lower() == 'y':
+            always_delete_working_artifacts = True
 
     if input_strings is not None:
         input_strings = '%s\n' % '\n'.join(input_strings)
@@ -269,7 +274,7 @@ def run_command_and_compare(global_config, target_folder, test_index, expected_s
 
     test_failed = (len(differences) > 0)
 
-    if not file_tree_diffs_found or not do_not_keep_working_artifacts_if_differences_found:
+    if not file_tree_diffs_found or always_delete_working_artifacts:
         # print(f" =========== no stdout difference, so deleting dir {WORKING_DIR}")
         # we want to keep working dir for comparisons when input/output comparison fails.
         shutil.rmtree(WORKING_DIR, ignore_errors=True)
@@ -294,7 +299,7 @@ def run_command_and_compare(global_config, target_folder, test_index, expected_s
             indent_newline = f"\n{indent}"
             pr_yellow("%s%s" % (indent, indent_newline.join(differences)))
 
-    if stdout_mismatch_found and do_not_keep_working_artifacts_if_differences_found:
+    if stdout_mismatch_found and not always_delete_working_artifacts:
 
         with open(STDOUT_WORKING_COPY_FILE, 'wb') as stdout_found:
             # print(f"Writing len {len(response)} to file because not matched")
@@ -310,6 +315,8 @@ def run_command_and_compare(global_config, target_folder, test_index, expected_s
 
 
 def run_all_tests(root_dir, record=False, report_failure_only=False, summary_csv=False):
+    root_dir = os.path.abspath(root_dir)
+
     if not os.path.exists(root_dir):
         print(f"Couldn't find test suite directory: {root_dir}.\nExiting.\n\n")
         sys.exit(1)
