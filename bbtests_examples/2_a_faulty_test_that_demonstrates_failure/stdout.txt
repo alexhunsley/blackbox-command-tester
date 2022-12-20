@@ -1,1 +1,0 @@
-Standard out doesn't actually output this text.

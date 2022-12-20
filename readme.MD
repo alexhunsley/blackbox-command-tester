@@ -1,9 +1,14 @@
-# Blackbox command tester
+# Blackbox command tester (BBT)
 
 This is a proof-of-concept.
 
-It's a tool for verifying standard output and/or file processing for a command line tool. Typically you'd use it to verify the behaviour of a tool you'd
-written.
+It's a tool for verifying a command-line tool in the following ways:
+
+* checking for expected standard output
+* checking for expected state of a file tree after processing
+
+Typically, you'd use BBT to verify the behaviour of a tool you'd written. However, you could also
+use it to verify the expected behaviour of a 3rd party tool hasn't changed.
 
 # Why not use Unit Tests?
 
@@ -18,7 +23,7 @@ This tool is for when unit testing might not quite fit your situation. For examp
 
 # Example
 
-As a very simple example, suppose you want to verify that the `cat` command is able to write to a file (and also that it will not change a
+As a contrived example, suppose you want to verify that the `cat` command is able to write to a file (and also that it will not change a
 file with a different name that already exists). The directory `bbtests_examples/0_cat_command_creates_a_file` demonstrates the setup to do
 this:
 
@@ -34,7 +39,7 @@ this:
 
 This entire structure describes a single test.
 
-`Blackox_tester` works by running a command (specified in `config.yml`) inside the `input` directory. It then verifies that
+BBT works by running a command (specified in `config.yml`) inside a _copy_ of the `input` directory. It then verifies that
 the resulting contents of that directory matches what is in the `output` directory.
 
 The `config.yml` file specifies what command to run:
@@ -46,7 +51,7 @@ The `config.yml` file specifies what command to run:
 
 Note that `test_description` is cosmetic only, but is worth specifying -- it will make `blackbox_tester` output easier to understand.
 
-# Blackbox Tester runs a suite of tests
+# BBT is designed to run a suite of tests
 
 If you look inside the directory `bbtests_examples`, you'll see three directories, specifying three tests:
 
@@ -58,9 +63,9 @@ If you look inside the directory `bbtests_examples`, you'll see three directorie
 
 This `bbtests_examples` directory comprises a *test suite*. When you run Blackbox Tester, you point it at a test suite directory, and all the
 tests in that directory are run. The directory names don't matter; try to give them briefly descriptive names. It *is* recommended to prefix
-your test suite directories with `bbtests_` in order to make it obvious which is a test suite.
+your main test suite directory with `bbtests_` in order to make it obvious what is a test suite.
 
-For example, to run the `bbtests_examples` suite, you run the command:
+To run the `bbtests_examples` suite:
 
 ```
     python3 blackbox_tester.py bbtests_examples
@@ -72,13 +77,14 @@ The output summarises the success or failure of every test in the suite:
     Cleaning artifacts from test suite dir: bbtests_examples
     
     Running test suite in dir: bbtests_examples
-        
+    
+    
+    
     Test 0 SUCCESS: "test if cat command creates a file, leaving an existing file alone" in dir "0_cat_command_creates_a_file"
     
     Test 1 SUCCESS: "test if echo emits to standard out" in dir "1_cat_output_to_stdout"
     
     Test 2 FAILED: "test if cat command creates a file, leaving an existing file alone, deliberate diffs" in dir "2_a_faulty_test_that_demonstrates_failure"
-       * standard out didn't match the output given in stdout.txt.
        Between working and output, found orphan files/folders: ['orphan_in_input.txt']
     
     1 failures in 3 tests.
@@ -87,10 +93,11 @@ The output summarises the success or failure of every test in the suite:
 ```
 
 Test 2 has deliberately been set up to demonstrate failure. When a test fails because the `input` directory contents don't match the `output`
-directory contents, Blackbox Tester tells you about any problems it found and leaves a directory named `working` behind to help you debug the
+directory contents, BBT tells you about any problems it found and leaves a directory `working/` behind to help you debug the
 issue. To see the differences, run your favourite diff tool on the directories `output/` and `working/` inside the failed test.
 
 If you do that in this case, you'll see a file `orphan_in_input.txt` in the `input` directory that isn't present in the `output` directory.
+If you remove that file and run the test suite again, all three tests should now pass.
 
 Once you've corrected your tests (or fixed a bug in the tool you're testing!), and want to try the tests again, you might think to remove
 the `working` directory(s). But there's no need to do this yourself: at the start of a test suite run, Blackbox Tester automatically removes
@@ -117,6 +124,15 @@ Should the `stdout.txt` contents not match what the command actually output, a f
 output: `stdout_working.txt`. You can this against your `stdout.txt` file.
 
 Note that the `--clean` command also removes any `stdout_working.txt` files it finds, as well as the `working/` directories.
+
+# What makes a valid test?
+
+A valid BBT test contains _at least_ one of these:
+
+* `output/` directory
+* `stdout.txt`
+
+You can specify both, of course.
 
 # Record mode
 
