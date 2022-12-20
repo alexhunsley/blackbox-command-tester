@@ -2,13 +2,13 @@
 
 This is a proof-of-concept.
 
-It's a tool for verifying a `target` command-line tool in the following ways:
+It's a tool for verifying a target command-line tool in the following ways:
 
 * checking for expected standard output
 * checking for expected state of a file tree after processing
 
 Typically, you'd use BBT to verify the behaviour of a tool you'd written. However, you could also
-use it to verify the expected behaviour of a 3rd party tool hasn't changed.
+use it to ensure the expected behaviour of a 3rd party tool hasn't changed.
 
 # Why not use Unit Tests?
 
