@@ -1,0 +1,3 @@
+test_description: 'Test that missing output folder is ok (if a stdout.txt exists)'
+command: 'python3 ../../../blackbox_tester.py bbtests_empty_input_output_folders'
+expected_return_code: '0'

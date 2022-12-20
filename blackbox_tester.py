@@ -17,6 +17,7 @@
 # [ ] (maybe) do file timestamp comparison input v output
 # [ ] make existing CSV output option a param
 # [ ] require any test dir in a test suite to begein 'test_'. Sensible.
+# [ ] self-tests: why is clean not called before sub-runs? stout_working.txt remains after a clean run?
 #
 #
 #
@@ -121,19 +122,31 @@ def trim_lines_until_after_line_containing(lines_as_bytes, text_match):
 
 # checks that config.yaml, input/ and output/ exist.
 def validate_folder_structure(single_test_target_folder):
+    errors = []
+
+    num_things_to_validate = 0
+
     input_folder_path = os.path.join(single_test_target_folder, INPUT_DIR)
     if not os.path.exists(input_folder_path):
-        print(f"Error: Couldn't find the input/ folder for a test at {single_test_target_folder}")
-        return False
+        errors.append(f"Error: Couldn't find the input/ folder for a test at {single_test_target_folder}")
 
     output_folder_path = os.path.join(single_test_target_folder, EXPECTED_OUTPUT_DIR)
-    if not os.path.exists(output_folder_path):
-        print(f"Error: Couldn't find the output/ folder for a test at {single_test_target_folder}")
-        return False
+    if os.path.exists(output_folder_path):
+        num_things_to_validate += 1
+
+    expected_stdout_filename = os.path.join(single_test_target_folder, STD_OUT_EXPECTED_CONTENT_FILENAME)
+    if os.path.exists(expected_stdout_filename):
+        num_things_to_validate += 1
 
     config_file_path = os.path.join(single_test_target_folder, YAML_CONFIG_FILE)
     if not os.path.exists(config_file_path):
-        print(f"Error: Couldn't find config.yaml for a test at {single_test_target_folder}")
+        errors.append(f"Error: Couldn't find config.yaml for a test at {single_test_target_folder}")
+
+    if num_things_to_validate == 0:
+        errors.append(f"Error: You need to specify at least one of an 'output/' folder and 'stdout.txt'")
+
+    if errors:
+        print('\n'.join(errors))
         return False
 
     return True
@@ -183,10 +196,10 @@ def run_command_and_compare(global_config, target_folder, test_index, expected_s
 
     input_strings = get_yaml_value(config, global_config, "text_input", definitions)
 
-    create_working_artifacts = True
+    do_not_keep_working_artifacts_if_differences_found = True
     if create_working_artifacts_str := get_yaml_value(config, global_config, "create_working_artifacts", definitions):
         if create_working_artifacts_str.lower() == 'n':
-            create_working_artifacts = False
+            do_not_keep_working_artifacts_if_differences_found = False
 
     if input_strings is not None:
         input_strings = '%s\n' % '\n'.join(input_strings)
@@ -238,12 +251,15 @@ def run_command_and_compare(global_config, target_folder, test_index, expected_s
         # come up out of working/ folder, back to target_folder (root of this single test)
         os.chdir("..")
 
+        output_dir_provided = os.path.exists(EXPECTED_OUTPUT_DIR)
+
         if record:
             shutil.rmtree(EXPECTED_OUTPUT_DIR, ignore_errors=True)
             os.rename(WORKING_DIR, EXPECTED_OUTPUT_DIR)
-        else:
-            compare_folders(WORKING_DIR, EXPECTED_OUTPUT_DIR, differences, exit_on_first_difference=False,
-                            section_size=1024 * 64, ignore_files=['.DS_Store', '.blackbox_ignore_this_file'])
+        elif output_dir_provided:
+            if os.path.exists(EXPECTED_OUTPUT_DIR):
+                compare_folders(WORKING_DIR, EXPECTED_OUTPUT_DIR, differences, exit_on_first_difference=False,
+                                section_size=1024 * 64, ignore_files=['.DS_Store', '.blackbox_ignore_this_file'])
 
     file_tree_diffs_found = True if len(differences) else False
 
@@ -253,7 +269,7 @@ def run_command_and_compare(global_config, target_folder, test_index, expected_s
 
     test_failed = (len(differences) > 0)
 
-    if not file_tree_diffs_found or not create_working_artifacts:
+    if not file_tree_diffs_found or not do_not_keep_working_artifacts_if_differences_found:
         # print(f" =========== no stdout difference, so deleting dir {WORKING_DIR}")
         # we want to keep working dir for comparisons when input/output comparison fails.
         shutil.rmtree(WORKING_DIR, ignore_errors=True)
@@ -278,7 +294,7 @@ def run_command_and_compare(global_config, target_folder, test_index, expected_s
             indent_newline = f"\n{indent}"
             pr_yellow("%s%s" % (indent, indent_newline.join(differences)))
 
-    if stdout_mismatch_found and create_working_artifacts:
+    if stdout_mismatch_found and do_not_keep_working_artifacts_if_differences_found:
 
         with open(STDOUT_WORKING_COPY_FILE, 'wb') as stdout_found:
             # print(f"Writing len {len(response)} to file because not matched")

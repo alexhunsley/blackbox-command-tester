@@ -1,0 +1,13 @@
+Cleaning artifacts from test suite dir: bbtests_empty_input_output_folders
+
+Running test suite in dir: bbtests_empty_input_output_folders
+
+
+
+Test 0 SUCCESS: "Echo command doesn't create any files" in dir "0"
+
+0 failures in 1 tests.
+
+Done.
+
+
