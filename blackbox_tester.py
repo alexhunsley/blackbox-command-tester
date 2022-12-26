@@ -53,8 +53,15 @@ STD_OUT_EXPECTED_CONTENT_FILENAME = "stdout.txt"
 
 ignore_dirs = ["ignore_contents", ".git"]
 
+BBT_IGNORE_FILE = '.bbt_ignore_this_file'
+
 # ENCODING = 'ascii'
 ENCODING = 'utf-8'
+
+
+def eprint(*args, **kwargs):
+    print(*args, file=sys.stderr, **kwargs)
+
 
 def pr_red(skk, end='\n'): print("\033[91m{}\033[00m".format(skk), end=end)
 
@@ -264,10 +271,9 @@ def run_command_and_compare(global_config, target_folder, test_index, expected_s
         elif output_dir_provided:
             if os.path.exists(EXPECTED_OUTPUT_DIR):
                 compare_folders(WORKING_DIR, EXPECTED_OUTPUT_DIR, differences, exit_on_first_difference=False,
-                                section_size=1024 * 64, ignore_files=['.DS_Store', '.blackbox_ignore_this_file'])
+                                section_size=1024 * 64, ignore_files=['.DS_Store', BBT_IGNORE_FILE])
 
     file_tree_diffs_found = True if len(differences) else False
-
     differences = stdout_differences + differences
 
     test_description = get_yaml_value(config, global_config, 'test_description', definitions)
@@ -278,6 +284,8 @@ def run_command_and_compare(global_config, target_folder, test_index, expected_s
         # print(f" =========== no stdout difference, so deleting dir {WORKING_DIR}")
         # we want to keep working dir for comparisons when input/output comparison fails.
         shutil.rmtree(WORKING_DIR, ignore_errors=True)
+    else:
+        eprint(f"Found diffs!  {differences} always_del = {always_delete_working_artifacts}")
     # else:
     #     print(f" =========== found stdout difference, so not deleting dir {WORKING_DIR}, stdout diff = {stdout_differences}")
 
@@ -312,6 +320,22 @@ def run_command_and_compare(global_config, target_folder, test_index, expected_s
     test_succeeded = (not stdout_mismatch_found) and len(differences) == 0
 
     return True, test_succeeded
+
+
+def process_empty_dirs(root_dir, create_empty_dir_droppings=False):
+    empty_dirs = []
+
+    for root, dirs, files in os.walk(root_dir, topdown=True):
+        if not files:
+            empty_dirs.append(root)
+            if create_empty_dir_droppings:
+                dropping_file = os.path.join(root, BBT_IGNORE_FILE)
+                eprint(f"Creating dropping: {dropping_file}")
+                with open(dropping_file, 'w'):
+                    pass
+
+    if empty_dirs:
+        eprint(f"Empty dirs: {empty_dirs}")
 
 
 def run_all_tests(root_dir, record=False, report_failure_only=False, summary_csv=False):
@@ -425,6 +449,8 @@ def run(test_suite_dir, clean, record, report_failure_only):
 
     if clean:
         sys.exit(0)
+
+    process_empty_dirs(test_suite_dir, create_empty_dir_droppings=True)
 
     print(f"Running test suite in dir: {test_suite_dir}\n\n")
     run_all_tests(test_suite_dir, record, report_failure_only)
