@@ -51,9 +51,12 @@ STDOUT_WORKING_COPY_FILE = 'stdout_working.txt'
 
 STD_OUT_EXPECTED_CONTENT_FILENAME = "stdout.txt"
 
-ignore_dirs = ["ignore_contents", ".git"]
-
 BBT_IGNORE_FILE = '.bbt_ignore_this_file'
+
+ignore_dirs = ["ignore_contents", ".git"]
+ignore_files_for_comparison_scan = ['.DS_Store', BBT_IGNORE_FILE]
+ignore_files_for_empty_dir_detection = ['.DS_Store']
+
 
 # ENCODING = 'ascii'
 ENCODING = 'utf-8'
@@ -271,7 +274,7 @@ def run_command_and_compare(global_config, target_folder, test_index, expected_s
         elif output_dir_provided:
             if os.path.exists(EXPECTED_OUTPUT_DIR):
                 compare_folders(WORKING_DIR, EXPECTED_OUTPUT_DIR, differences, exit_on_first_difference=False,
-                                section_size=1024 * 64, ignore_files=['.DS_Store', BBT_IGNORE_FILE])
+                                section_size=1024 * 64, ignore_files=ignore_files_for_comparison_scan)
 
     file_tree_diffs_found = True if len(differences) else False
     differences = stdout_differences + differences
@@ -326,7 +329,9 @@ def process_empty_dirs(root_dir, create_empty_dir_droppings=False):
     empty_dirs = []
 
     for root, dirs, files in os.walk(root_dir, topdown=True):
-        if not files:
+        #eprint(f"root: {root} files: {files} dirs: {dirs}")
+        filtered_files = [f for f in files if f not in ignore_files_for_empty_dir_detection]
+        if not filtered_files and not dirs:
             empty_dirs.append(root)
             if create_empty_dir_droppings:
                 dropping_file = os.path.join(root, BBT_IGNORE_FILE)
