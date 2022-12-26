@@ -28,7 +28,7 @@
 # want to delete, and deletes those. Solution: Limit level we delete working/ folders to.
 #
 #
-
+import os.path
 import sys
 import shutil
 import subprocess
@@ -130,6 +130,20 @@ def trim_lines_until_after_line_containing(lines_as_bytes, text_match):
     return all_lines.encode(ENCODING)
 
 
+def last_folder_components(path, component_count):
+
+    comps = path.split(os.path.sep)
+    # a path ending '/' has empty string at end of split result
+    if comps[-1] == '':
+        comps = comps[-1:]
+
+    last_comps = comps[-component_count:]
+    return os.path.sep.join(last_comps)
+
+
+# print(last_folder_components("/a/b/c/d/e/f/g", 2))
+# sys.exit(0)
+
 # checks that config.yaml, input/ and output/ exist.
 def validate_folder_structure(single_test_target_folder):
     errors = []
@@ -141,7 +155,9 @@ def validate_folder_structure(single_test_target_folder):
 
     input_folder_path = os.path.join(target_folder_abspath, INPUT_DIR)
     if not os.path.exists(input_folder_path):
-        errors.append(f"Error: Couldn't find the input/ folder for a test at {input_folder_path}")
+        rel_path = last_folder_components(input_folder_path, 3)
+
+        errors.append(f"Error: Couldn't find the input/ folder for a test at {rel_path}")
         # errors.append(f"Error: Couldn't find the input/ folder for a test at {input_folder_path}, currdir = {os.getcwd()}")
 
     output_folder_path = os.path.join(single_test_target_folder, EXPECTED_OUTPUT_DIR)
