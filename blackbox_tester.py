@@ -154,8 +154,9 @@ def validate_folder_structure(single_test_target_folder):
     target_folder_abspath = single_test_target_folder
 
     input_folder_path = os.path.join(target_folder_abspath, INPUT_DIR)
+    rel_path = last_folder_components(input_folder_path, 3)
+
     if not os.path.exists(input_folder_path):
-        rel_path = last_folder_components(input_folder_path, 3)
 
         errors.append(f"Error: Couldn't find the input/ folder for a test at {rel_path}")
         # errors.append(f"Error: Couldn't find the input/ folder for a test at {input_folder_path}, currdir = {os.getcwd()}")
@@ -170,7 +171,7 @@ def validate_folder_structure(single_test_target_folder):
 
     config_file_path = os.path.join(single_test_target_folder, YAML_CONFIG_FILE)
     if not os.path.exists(config_file_path):
-        errors.append(f"Error: Couldn't find config.yaml for a test at {single_test_target_folder}")
+        errors.append(f"Error: Couldn't find config.yaml for a test at {rel_path}")
 
     if num_things_to_validate == 0:
         errors.append(f"Error: You need to specify at least one of an 'output/' folder and 'stdout.txt'")
