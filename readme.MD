@@ -167,11 +167,11 @@ all failed output to the expected output:
 
 You might want to create an empty `input` or `output` directory for a test. This is fine as far as BBT is concerned, but if you're
 using git for source control, you might have a problem because it can't commit empty directories. To get around this, put an empty
-file `.blackbox_ignore_this_file` inside any empty directory. It's a file name that BBT ignores, but it presence will allow git to
-check in the directory.
+file `.bbt_ignore_this_file` inside any empty directory. It's a file name that BBT ignores, but its presence will allow git to
+commit the directory.
 
-If you're wondering why BBT doesn't just check for and ignore the standard `.gitkeep` file that is usually used for the same purpose: as far
-as BBT is concerned, any `.gitkeep` files should just be regarded as regular data; its presence (or not) might be involved in a test.
+If you're wondering why BBT doesn't just ignore the standard `.gitkeep` file that is usually used for the same purpose: its presence
+(or not) might be involved in a test, so it should be regarded as a file like any other.
 
 # Disabling certain tests in a test suite
 
