@@ -158,10 +158,13 @@ To do such a recording, run the tool with the `--record` flag:
 
 # Checking in empty input/output directories using Git
 
-You might want to create an empty `input` or `output` directory for a test. This is fine as far as Blackbox Tester is concerned, but if you're
-using git for source control, you might have a problem because it doesn't 'see' empty directories. To get around this, put an empty
-file `.blackbox_ignore_this_file` inside any empty directory. It's a file name that Blackbox Tester ignores, but it will allow git to see the
-directory.
+You might want to create an empty `input` or `output` directory for a test. This is fine as far as BBT is concerned, but if you're
+using git for source control, you might have a problem because it can't commit empty directories. To get around this, put an empty
+file `.blackbox_ignore_this_file` inside any empty directory. It's a file name that BBT ignores, but it presence will allow git to
+check in the directory.
+
+If you're wondering why BBT doesn't just check for and ignore the standard `.gitkeep` file that is usually used for the same purpose: as far
+as BBT is concerned, any `.gitkeep` files should just be regarded as regular data; its presence (or not) might be involved in a test.
 
 # Disabling certain tests in a test suite
 
