@@ -174,7 +174,7 @@ named `ignore_contents` in a test suite.
 Taking the `bbtests_examples` test suite as an example, we could disable tests 1 and 2 by moving them into a subfolder with that name:
 
 ```
-    0_cat_command_creates_a_file/
+    0_cat_command_creates_a_file/    <-- only this test will run
     ignore_contents/
         1_cat_output_to_stdout/
         2_a_faulty_test_that_demonstrates_failure/
