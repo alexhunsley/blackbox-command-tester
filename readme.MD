@@ -145,6 +145,13 @@ To do such a recording, run the tool with the `--record` flag:
     python3 blackbox_tester.py my_test_suite --record
 ```
 
+ProTip: if you have failing tests, and if your test suite is checked into git, you can use `--record` mode to easily compare
+all failed output to the expected output:
+
+* Ensure your working directory is clean (no local changes)
+* Run BBT with `--record`
+* Check the git working copy diffs in your favourite tool to see any differences in `output/` folders
+
 # Global config
 
 # Other parameters

@@ -5,19 +5,22 @@
 # Copyright Alex Hunsley 2022
 #
 #
+# [ ] review license of this project -- maybe use MIT
+# [ ] add comment to readme about --record mode usefulness with git when tests fail (can see all problems in the working copy changes)
+# [ ] split source into files
+# [ ] optional translation of 'first/last checksum' diffs to just checksum diff - consumer of folder compare doesn't usually care
+# [ ] ? remove the 'variables' dict, let anything at global.yaml level be a variable for {var_name}.
+# [ ] take target tests in suite as a param -- for running only some of them
+# [ ] (maybe) do file timestamp comparison input v output
+# [ ] make existing CSV output option a param
+# [ ] require any test dir in a test suite to begin 'test_'. Sensible.
+# [ ] self-tests: why is clean not called before sub-runs? stout_working.txt remains after a clean run?
 # [x] add .blackbox-ignore empty file to any empty folders found. This is so git can check in empty folders which are a valid part of tests.
 # [x] add stdin so can test commands that require user input
 # [x] add clean command that kills all working dirs and all stdout_working.txt files
 # [x] add comparison of stdout to expected stdout
 # [x] add train mode -- records stout.txt and output/ from the tool run
 # [x] add 'show only failures' param
-# [ ] optional translation of 'first/last checksum' diffs to just checksum diff - consumer of folder compare doesn't usually care
-# [ ] ? remove the 'variables' dict, let anything at global.yaml level be a variable for {var_name}.
-# [ ] take target tests in suite as a param -- for running only some of them
-# [ ] (maybe) do file timestamp comparison input v output
-# [ ] make existing CSV output option a param
-# [ ] require any test dir in a test suite to begein 'test_'. Sensible.
-# [ ] self-tests: why is clean not called before sub-runs? stout_working.txt remains after a clean run?
 #
 #
 #
@@ -26,8 +29,7 @@
 #
 # The issue with self-test: the auto-call to clean finds legit working/ folders *inside the input/output dirs in the test* that we don't
 # want to delete, and deletes those. Solution: Limit level we delete working/ folders to.
-#
-#
+
 import os.path
 import sys
 import shutil
@@ -227,7 +229,7 @@ def run_command_and_compare(global_config, target_folder, test_index, expected_s
 
     input_strings = get_yaml_value(config, global_config, "text_input", definitions)
 
-    # always del working artificts, even if differences found
+    # always del working artifacts, even if differences found
     always_delete_working_artifacts = False
     if always_delete_working_artifacts_str := get_yaml_value(config, global_config, "always_delete_working_artifacts", definitions):
         if always_delete_working_artifacts_str.lower() == 'y':
@@ -400,8 +402,6 @@ def run_all_tests(root_dir, record=False, report_failure_only=False, summary_csv
         for dir in dirs_filt:
 
             target_dir = os.path.join(root_dir, dir)
-
-            stdout_expected = None
 
             # expected_stdout_filename = os.path.join(target_dir, STD_OUT_EXPECTED_CONTENT_FILENAME)
             expected_stdout_filename = os.path.join("..", STD_OUT_EXPECTED_CONTENT_FILENAME)
