@@ -382,7 +382,7 @@ def run_all_tests(root_dir, record=False, report_failure_only=False, summary_csv
             print(f"\nCouldn't open global.yaml found in {root_dir}")
             return False, False
 
-    # remap all vars to {var} inm the global config
+    # remap all vars to {var} in the global config
     if global_config:
         vars = global_config.get(DEFINITIONS_KEY, {})
 
