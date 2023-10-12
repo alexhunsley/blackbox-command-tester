@@ -1,6 +1,6 @@
 # Blackbox command tester (BBT)
 
-I'm a tool for verifying a target command-line tool in the following ways:
+I'm useful for verifying a target command-line tool in the following ways:
 
 * checking for expected standard output
 * checking for expected state of a file tree after processing
