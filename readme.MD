@@ -6,7 +6,7 @@ I'm useful for verifying a target command-line tool in the following ways:
 * checking for expected state of a file tree after processing
 
 Typically, you'd use BBT to verify the behaviour of a tool you'd written. However, you could also
-use it to ensure the expected behaviour of a 3rd party tool hasn't changed.
+use it to ensure the expected behaviour of a 3rd party tool hasn't changed, especially where critical (e.g. file de-duplication tools).
 
 # Why not use Unit Tests?
 
